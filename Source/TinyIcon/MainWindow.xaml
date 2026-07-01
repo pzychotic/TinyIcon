@@ -99,11 +99,14 @@
             <GridSplitter Grid.Column="1" Width="5" VerticalAlignment="Stretch" HorizontalAlignment="Center"
                           Background="#FFD0D0D0" />
 
-            <!-- Right: centered, zoomable detail view -->
+            <!-- Right: centered, zoomable, right-drag pannable detail view -->
             <Grid Grid.Column="2" Background="#FF3F3F46">
-                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Padding="12">
-                    <ScrollViewer.Style>
-                        <Style TargetType="ScrollViewer">
+                <!-- Clipping host: a Canvas measures its child with an infinite constraint, so the Border reports
+                     its true (zoomed) size even when larger than the panel; the image is moved with a
+                     RenderTransform, so it must be clipped to this panel. -->
+                <Canvas ClipToBounds="True">
+                    <Canvas.Style>
+                        <Style TargetType="Canvas">
                             <Setter Property="Visibility" Value="Visible" />
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding SelectedSubImage.Bitmap}" Value="{x:Null}">
@@ -111,10 +114,14 @@
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
-                    </ScrollViewer.Style>
-                    <Border HorizontalAlignment="Center" VerticalAlignment="Center"
-                            BorderBrush="Black" BorderThickness="1"
+                    </Canvas.Style>
+                    <!-- At Canvas (0,0): PanBehavior owns centering so a zoomed, oversized image stays centered. -->
+                    <Border BorderBrush="Black" BorderThickness="1"
                             Background="{StaticResource Checkerboard}">
+                        <b:Interaction.Behaviors>
+                            <!-- Recenter when the selected sub-image changes. -->
+                            <beh:PanBehavior MinVisibleFraction="0.25" ResetSignal="{Binding SelectedSubImage}" />
+                        </b:Interaction.Behaviors>
                         <Image Source="{Binding SelectedSubImage.Bitmap}" Stretch="None"
                                RenderOptions.BitmapScalingMode="NearestNeighbor">
                             <b:Interaction.Behaviors>
@@ -122,7 +129,7 @@
                             </b:Interaction.Behaviors>
                         </Image>
                     </Border>
-                </ScrollViewer>
+                </Canvas>
 
                 <TextBlock Foreground="#FFDDDDDD" HorizontalAlignment="Center" VerticalAlignment="Center"
                            TextAlignment="Center" TextWrapping="Wrap" MaxWidth="300"
