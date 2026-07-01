@@ -4,6 +4,7 @@
 # TinyIcon
 
 [![GitHub License](https://badgen.net/github/license/pzychotic/TinyIcon)](https://github.com/pzychotic/TinyIcon/blob/main/LICENSE)
+[![CI](https://github.com/pzychotic/TinyIcon/actions/workflows/ci.yml/badge.svg)](https://github.com/pzychotic/TinyIcon/actions/workflows/ci.yml)
 
 A tiny windows icon file (.ico) creator.
 Define your wanted resolutions, import image, save. Done!
