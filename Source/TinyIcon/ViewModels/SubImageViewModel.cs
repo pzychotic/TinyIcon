@@ -1,5 +1,5 @@
-using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
+using System.Windows.Media.Imaging;
 
 namespace TinyIcon.ViewModels;
 

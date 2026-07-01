@@ -1,4 +1,3 @@
-using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using TinyIcon.Models;
 

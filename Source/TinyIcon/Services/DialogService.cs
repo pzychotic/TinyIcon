@@ -1,5 +1,5 @@
-using System.Windows;
 using Microsoft.Win32;
+using System.Windows;
 using TinyIcon.ViewModels;
 using TinyIcon.Views;
 

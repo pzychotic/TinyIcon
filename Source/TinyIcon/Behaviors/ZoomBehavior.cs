@@ -1,7 +1,7 @@
+using Microsoft.Xaml.Behaviors;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
-using Microsoft.Xaml.Behaviors;
 
 namespace TinyIcon.Behaviors;
 
