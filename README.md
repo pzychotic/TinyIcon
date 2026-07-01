@@ -19,7 +19,11 @@ Build and run:
    ```
    dotnet build
    ```
-2. Run:
+2. Test (optional):
+   ```
+   dotnet test
+   ```
+3. Run:
    ```
    dotnet run --project Source\TinyIcon\TinyIcon.csproj
    ```
