@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <ApplicationIcon>Resources\AppIcon.ico</ApplicationIcon>
@@ -21,10 +21,16 @@
 
   <ItemGroup>
     <None Remove="Resources\AppIcon.png" />
+    <None Remove="Resources\ZoomIn.png" />
+    <None Remove="Resources\ZoomOut.png" />
+    <None Remove="Resources\ZoomReset.png" />
   </ItemGroup>
 
   <ItemGroup>
     <Resource Include="Resources\AppIcon.png" />
+    <Resource Include="Resources\ZoomIn.png" />
+    <Resource Include="Resources\ZoomOut.png" />
+    <Resource Include="Resources\ZoomReset.png" />
   </ItemGroup>
 
   <ItemGroup>

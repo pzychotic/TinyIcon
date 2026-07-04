@@ -45,10 +45,23 @@
                 <Separator />
                 <MenuItem Header="E_xit" Click="Exit_Click" />
             </MenuItem>
+
             <MenuItem Header="_View">
-                <MenuItem Header="Zoom _In" Command="{Binding ZoomInCommand}" InputGestureText="Ctrl++" />
-                <MenuItem Header="Zoom _Out" Command="{Binding ZoomOutCommand}" InputGestureText="Ctrl+-" />
-                <MenuItem Header="_Reset Zoom" Command="{Binding ZoomResetCommand}" InputGestureText="Ctrl+*" />
+                <MenuItem Header="Zoom _In" Command="{Binding ZoomInCommand}" InputGestureText="Ctrl++">
+                    <MenuItem.Icon>
+                        <Image Source="/Resources/ZoomIn.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Zoom _Out" Command="{Binding ZoomOutCommand}" InputGestureText="Ctrl+-">
+                    <MenuItem.Icon>
+                        <Image Source="/Resources/ZoomOut.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Zoom _Reset" Command="{Binding ZoomResetCommand}" InputGestureText="Ctrl+*">
+                    <MenuItem.Icon>
+                        <Image Source="/Resources/ZoomReset.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
 
             <MenuItem Header="?">
@@ -58,14 +71,20 @@
 
         <!-- Toolbar -->
         <ToolBarTray DockPanel.Dock="Top">
-            <ToolBar>
+            <ToolBar Height="32">
                 <Button Content="New" Command="{Binding NewIconCommand}" ToolTip="New Icon (Ctrl+N)" />
                 <Button Content="Import" Command="{Binding ImportImageCommand}" ToolTip="Import Image (Ctrl+I)" />
                 <Button Content="Save" Command="{Binding SaveIconCommand}" ToolTip="Save Icon (Ctrl+S)" />
                 <Separator />
-                <Button Content="+" FontWeight="Bold" MinWidth="28" Command="{Binding ZoomInCommand}" ToolTip="Zoom In (Ctrl++)" />
-                <Button Content="–" FontWeight="Bold" MinWidth="28" Command="{Binding ZoomOutCommand}" ToolTip="Zoom Out (Ctrl+-)" />
-                <Button Content="Reset" Command="{Binding ZoomResetCommand}" ToolTip="Reset Zoom (Ctrl+*)" />
+                <Button Command="{Binding ZoomInCommand}" ToolTip="Zoom In (Ctrl++)">
+                    <Image Source="/Resources/ZoomIn.png" />
+                </Button>
+                <Button Command="{Binding ZoomOutCommand}" ToolTip="Zoom Out (Ctrl+-)">
+                    <Image Source="/Resources/ZoomOut.png" />
+                </Button>
+                <Button Command="{Binding ZoomResetCommand}" ToolTip="Reset Zoom (Ctrl+*)">
+                    <Image Source="/Resources/ZoomReset.png" />
+                </Button>
                 <Separator />
                 <TextBlock VerticalAlignment="Center" Margin="4,0" MinWidth="44"
                            Text="{Binding ZoomLevel, StringFormat={}{0:P0}}" />
