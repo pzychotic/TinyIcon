@@ -1,3 +1,8 @@
+---
+layout: default
+title: TinyIcon
+---
+
 > [!NOTE]
 > 🚧 Work in progress 🚧
 
@@ -11,42 +16,9 @@ A tiny windows icon file (.ico) creator.
 
 Define your wanted resolutions, import image, save. Done!
 
-![Screenshots](Docs/Screenshot.png)
-
 ## Features
 
 - tbd
-
-For more details, see the [Changelog](Docs/Changelog.md).
-
-## Build
-### From the command line
-
-Prerequisites:
-- .NET SDK 10.0 - install from https://dotnet.microsoft.com/
-
-Build and run:
-1. Build:
-   ```
-   dotnet build
-   ```
-2. Test (optional):
-   ```
-   dotnet test
-   ```
-3. Run:
-   ```
-   dotnet run --project Source\TinyIcon\TinyIcon.csproj
-   ```
-
-### From Visual Studio 2026
-
-Prerequisites:
-- .Net Desktop development workload
-- .Net 10.0 Runtime
-- .Net SDK
-
-Just open ```TinyIcon.slnx``` build and run.
 
 ## Dependencies
 
@@ -56,3 +28,7 @@ Just open ```TinyIcon.slnx``` build and run.
 ## References
 
 - Icons created from [Fluent System Icons](https://github.com/microsoft/fluentui-system-icons)
+
+---
+
+[Screenshots](Screenshots) · [Changelog](Changelog) · [GitHub Repository](https://github.com/pzychotic/TinyIcon) · [Releases](https://github.com/pzychotic/TinyIcon/releases)

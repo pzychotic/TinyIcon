@@ -1,0 +1,15 @@
+title: TinyIcon
+description: A tiny windows icon file (.ico) creator
+remote_theme: pages-themes/cayman@v0.2.0
+baseurl: /TinyIcon
+
+plugins:
+  - jekyll-remote-theme
+
+# Repo metadata used by the theme header
+github:
+  repository_url: https://github.com/pzychotic/TinyIcon
+
+# Exclude files not needed in the built site
+exclude:
+  - Screenshot.png
