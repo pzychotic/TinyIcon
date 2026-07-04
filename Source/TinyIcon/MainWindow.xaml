@@ -39,9 +39,21 @@
         <!-- Menu -->
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
-                <MenuItem Header="_New Icon…" Command="{Binding NewIconCommand}" InputGestureText="Ctrl+N" />
-                <MenuItem Header="_Import Image…" Command="{Binding ImportImageCommand}" InputGestureText="Ctrl+I" />
-                <MenuItem Header="_Save Icon…" Command="{Binding SaveIconCommand}" InputGestureText="Ctrl+S" />
+                <MenuItem Header="_New Icon…" Command="{Binding NewIconCommand}" InputGestureText="Ctrl+N">
+                    <MenuItem.Icon>
+                        <Image Source="/Resources/NewIcon.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="_Import Image…" Command="{Binding ImportImageCommand}" InputGestureText="Ctrl+I">
+                    <MenuItem.Icon>
+                        <Image Source="/Resources/ImportImage.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="_Save Icon…" Command="{Binding SaveIconCommand}" InputGestureText="Ctrl+S">
+                    <MenuItem.Icon>
+                        <Image Source="/Resources/SaveIcon.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
                 <Separator />
                 <MenuItem Header="E_xit" Click="Exit_Click" />
             </MenuItem>
@@ -72,9 +84,15 @@
         <!-- Toolbar -->
         <ToolBarTray DockPanel.Dock="Top">
             <ToolBar Height="32">
-                <Button Content="New" Command="{Binding NewIconCommand}" ToolTip="New Icon (Ctrl+N)" />
-                <Button Content="Import" Command="{Binding ImportImageCommand}" ToolTip="Import Image (Ctrl+I)" />
-                <Button Content="Save" Command="{Binding SaveIconCommand}" ToolTip="Save Icon (Ctrl+S)" />
+                <Button Command="{Binding NewIconCommand}" ToolTip="New Icon (Ctrl+N)">
+                    <Image Source="/Resources/NewIcon.png" />
+                </Button>
+                <Button Command="{Binding ImportImageCommand}" ToolTip="Import Image (Ctrl+I)">
+                    <Image Source="/Resources/ImportImage.png" />
+                </Button>
+                <Button Command="{Binding SaveIconCommand}" ToolTip="Save Icon (Ctrl+S)">
+                    <Image Source="/Resources/SaveIcon.png" />
+                </Button>
                 <Separator />
                 <Button Command="{Binding ZoomInCommand}" ToolTip="Zoom In (Ctrl++)">
                     <Image Source="/Resources/ZoomIn.png" />
