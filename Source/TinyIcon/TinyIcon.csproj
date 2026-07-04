@@ -12,6 +12,10 @@
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
   </PropertyGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="TinyIcon.Tests" />
+  </ItemGroup>
+
   <PropertyGroup>
     <Version>0.1.0</Version>
     <FileVersion>0.1.0.0</FileVersion>

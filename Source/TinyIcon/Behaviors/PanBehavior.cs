@@ -167,7 +167,7 @@ public sealed class PanBehavior : Behavior<FrameworkElement>
     /// <paramref name="minVisibleFraction"/> of the content stays within the viewport. When the content is larger
     /// than the viewport the offset is limited to keep the viewport fully covered.
     /// </summary>
-    public static double ClampAxis(double desired, double content, double viewport, double minVisibleFraction)
+    internal static double ClampAxis(double desired, double content, double viewport, double minVisibleFraction)
     {
         var requiredOverlap = Math.Min(minVisibleFraction * content, viewport);
         var max = (content + viewport) / 2.0 - requiredOverlap;
