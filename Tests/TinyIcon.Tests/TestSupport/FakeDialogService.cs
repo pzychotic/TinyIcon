@@ -33,4 +33,6 @@ internal sealed class FakeDialogService : IDialogService
     }
 
     public void ShowError(string message) => Errors.Add(message);
+
+    public void ShowAbout() { }
 }

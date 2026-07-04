@@ -95,4 +95,7 @@ public partial class MainViewModel : ObservableObject
 
     [RelayCommand]
     private void ZoomReset() => ZoomLevel = 1.0;
+
+    [RelayCommand]
+    private void About() => _dialogs.ShowAbout();
 }

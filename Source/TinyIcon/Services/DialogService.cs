@@ -40,4 +40,10 @@ public sealed class DialogService(Window owner) : IDialogService
 
     public void ShowError(string message) =>
         MessageBox.Show(owner, message, "TinyIcon", MessageBoxButton.OK, MessageBoxImage.Error);
+
+    public void ShowAbout()
+    {
+        var about = new Views.AboutWindow { Owner = Application.Current.MainWindow };
+        about.ShowDialog();
+    }
 }

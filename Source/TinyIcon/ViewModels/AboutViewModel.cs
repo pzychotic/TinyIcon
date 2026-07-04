@@ -1,0 +1,39 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using System.Diagnostics;
+using System.Reflection;
+
+namespace TinyIcon.ViewModels;
+
+public partial class AboutViewModel : ObservableObject
+{
+    public string AppIcon { get; } = "/Resources/AppIcon.png";
+    public string AppName { get; }
+    public string Version { get; }
+    public string RepoUrl { get; } = "https://github.com/pzychotic/TinyIcon";
+
+    public AboutViewModel()
+    {
+        var asm = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
+        var ver = asm.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+        AppName = asm.GetName().Name ?? "TinyIcon";
+        Version = ver?.Split('+')[0] ?? "0.0.0"; // strip '+sha' if present
+    }
+
+    [RelayCommand]
+    private void OpenRepo()
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo(RepoUrl) { UseShellExecute = true });
+        }
+        catch
+        {
+            // no browser / shell handler available — nothing useful to do
+        }
+    }
+
+    // close command is a no-op in the VM, the CloseOnCommand behavior will invoke it and then close the window
+    [RelayCommand]
+    private void Close() { }
+}

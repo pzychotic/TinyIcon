@@ -49,6 +49,10 @@
                 <MenuItem Header="Zoom _Out" Command="{Binding ZoomOutCommand}" InputGestureText="Ctrl+-" />
                 <MenuItem Header="_Reset Zoom" Command="{Binding ZoomResetCommand}" InputGestureText="Ctrl+*" />
             </MenuItem>
+
+            <MenuItem Header="?">
+                <MenuItem Header="_About" Command="{Binding AboutCommand}" />
+            </MenuItem>
         </Menu>
 
         <!-- Toolbar -->

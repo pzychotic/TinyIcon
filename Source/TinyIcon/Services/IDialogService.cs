@@ -14,4 +14,7 @@ public interface IDialogService
 
     /// <summary>Shows an error message to the user.</summary>
     void ShowError(string message);
+
+    /// <summary>Shows the About dialog.</summary>
+    void ShowAbout();
 }
