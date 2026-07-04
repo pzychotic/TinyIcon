@@ -8,6 +8,7 @@
         xmlns:vm="clr-namespace:TinyIcon.ViewModels"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance Type=vm:MainViewModel, IsDesignTimeCreatable=False}"
+        SnapsToDevicePixels="True" UseLayoutRounding="True"
         Title="TinyIcon" Height="600" Width="900">
 
     <Window.Resources>
