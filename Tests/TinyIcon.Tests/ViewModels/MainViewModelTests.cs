@@ -200,6 +200,38 @@ public class MainViewModelTests
     }
 
     [Test]
+    public void SaveIcon_SkipsSlotsWithoutABitmap()
+    {
+        string path = Path.Combine(Path.GetTempPath(), $"tinyicon-test-{Guid.NewGuid():N}.ico");
+        var dialogs = new FakeDialogService
+        {
+            NewIconResult = [(16, 32), (32, 32)],
+            SaveIconResult = path,
+        };
+        var vm = Create(dialogs);
+        vm.NewIconCommand.Execute(null);
+        vm.SubImages[0].Bitmap = BitmapTestHelpers.SolidColor(16, 16, 1, 2, 3, 255);
+
+        try
+        {
+            vm.SaveIconCommand.Execute(null);
+
+            using var reader = new BinaryReader(File.OpenRead(path));
+            reader.BaseStream.Position = 4; // skip reserved + type, land on the image count
+            Assert.Multiple(() =>
+            {
+                Assert.That(reader.ReadUInt16(), Is.EqualTo(1), "only the filled slot is written");
+                Assert.That(dialogs.Errors, Is.Empty);
+            });
+        }
+        finally
+        {
+            if (File.Exists(path))
+                File.Delete(path);
+        }
+    }
+
+    [Test]
     public void SaveIcon_WhenCancelled_WritesNothing()
     {
         var dialogs = new FakeDialogService
