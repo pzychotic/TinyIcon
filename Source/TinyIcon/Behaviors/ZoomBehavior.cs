@@ -2,6 +2,7 @@ using Microsoft.Xaml.Behaviors;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using TinyIcon.Models;
 
 namespace TinyIcon.Behaviors;
 
@@ -28,7 +29,8 @@ public sealed class ZoomBehavior : Behavior<FrameworkElement>
     }
 
     public static readonly DependencyProperty MinZoomProperty = DependencyProperty.Register(
-        nameof(MinZoom), typeof(double), typeof(ZoomBehavior), new PropertyMetadata(0.1));
+        nameof(MinZoom), typeof(double), typeof(ZoomBehavior),
+        new PropertyMetadata(ZoomDefaults.Min, OnZoomLimitChanged));
 
     public double MinZoom
     {
@@ -37,7 +39,8 @@ public sealed class ZoomBehavior : Behavior<FrameworkElement>
     }
 
     public static readonly DependencyProperty MaxZoomProperty = DependencyProperty.Register(
-        nameof(MaxZoom), typeof(double), typeof(ZoomBehavior), new PropertyMetadata(16.0));
+        nameof(MaxZoom), typeof(double), typeof(ZoomBehavior),
+        new PropertyMetadata(ZoomDefaults.Max, OnZoomLimitChanged));
 
     public double MaxZoom
     {
@@ -46,7 +49,7 @@ public sealed class ZoomBehavior : Behavior<FrameworkElement>
     }
 
     public static readonly DependencyProperty WheelStepProperty = DependencyProperty.Register(
-        nameof(WheelStep), typeof(double), typeof(ZoomBehavior), new PropertyMetadata(1.25));
+        nameof(WheelStep), typeof(double), typeof(ZoomBehavior), new PropertyMetadata(ZoomDefaults.Step));
 
     /// <summary>Multiplicative step applied per mouse-wheel notch.</summary>
     public double WheelStep
@@ -78,6 +81,9 @@ public sealed class ZoomBehavior : Behavior<FrameworkElement>
 
     private static void OnZoomLevelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) =>
         ((ZoomBehavior)d).ApplyZoom();
+
+    private static void OnZoomLimitChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) =>
+        d.CoerceValue(ZoomLevelProperty);
 
     private static object CoerceZoom(DependencyObject d, object baseValue)
     {

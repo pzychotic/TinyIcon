@@ -9,10 +9,6 @@ namespace TinyIcon.ViewModels;
 /// <summary>Root view model: owns the sub-image list, the selection, the zoom level and the file commands.</summary>
 public partial class MainViewModel : ObservableObject
 {
-    private const double MinZoom = 0.1;
-    private const double MaxZoom = 16.0;
-    private const double ZoomStep = 1.25;
-
     private readonly IDialogService _dialogs;
 
     public MainViewModel(IDialogService dialogs)
@@ -94,10 +90,10 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void ZoomIn() => ZoomLevel = Math.Clamp(ZoomLevel * ZoomStep, MinZoom, MaxZoom);
+    private void ZoomIn() => ZoomLevel = Math.Clamp(ZoomLevel * ZoomDefaults.Step, ZoomDefaults.Min, ZoomDefaults.Max);
 
     [RelayCommand]
-    private void ZoomOut() => ZoomLevel = Math.Clamp(ZoomLevel / ZoomStep, MinZoom, MaxZoom);
+    private void ZoomOut() => ZoomLevel = Math.Clamp(ZoomLevel / ZoomDefaults.Step, ZoomDefaults.Min, ZoomDefaults.Max);
 
     [RelayCommand]
     private void ZoomReset() => ZoomLevel = 1.0;

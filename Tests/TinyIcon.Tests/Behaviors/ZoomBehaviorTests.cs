@@ -36,4 +36,24 @@ public class ZoomBehaviorTests
 
         Assert.That(behavior.ZoomLevel, Is.EqualTo(2.5));
     }
+
+    [Test]
+    public void LoweringMaxZoom_ReCoercesTheCurrentZoomLevel()
+    {
+        var behavior = new ZoomBehavior { ZoomLevel = 8.0 };
+
+        behavior.MaxZoom = 4.0;
+
+        Assert.That(behavior.ZoomLevel, Is.EqualTo(4.0));
+    }
+
+    [Test]
+    public void RaisingMinZoom_ReCoercesTheCurrentZoomLevel()
+    {
+        var behavior = new ZoomBehavior { ZoomLevel = 0.2 };
+
+        behavior.MinZoom = 0.5;
+
+        Assert.That(behavior.ZoomLevel, Is.EqualTo(0.5));
+    }
 }

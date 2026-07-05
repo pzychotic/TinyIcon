@@ -185,7 +185,8 @@
                         <Image Source="{Binding SelectedSubImage.Bitmap}" Stretch="None"
                                RenderOptions.BitmapScalingMode="NearestNeighbor">
                             <b:Interaction.Behaviors>
-                                <beh:ZoomBehavior ZoomLevel="{Binding ZoomLevel}" MinZoom="0.1" MaxZoom="16" />
+                                <!-- Zoom limits/step come from ZoomDefaults, shared with the view model's commands. -->
+                                <beh:ZoomBehavior ZoomLevel="{Binding ZoomLevel}" />
                             </b:Interaction.Behaviors>
                         </Image>
                     </Border>
