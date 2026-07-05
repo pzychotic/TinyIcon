@@ -43,7 +43,7 @@ public sealed class DialogService(Window owner) : IDialogService
 
     public void ShowAbout()
     {
-        var about = new Views.AboutWindow { Owner = Application.Current.MainWindow };
+        var about = new AboutWindow { Owner = owner };
         about.ShowDialog();
     }
 }
