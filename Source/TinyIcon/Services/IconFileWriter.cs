@@ -1,7 +1,7 @@
 using System.IO;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using TinyIcon.ViewModels;
+using TinyIcon.Models;
 
 namespace TinyIcon.Services;
 
@@ -12,12 +12,11 @@ namespace TinyIcon.Services;
 /// </summary>
 public static class IconFileWriter
 {
-    /// <summary>Writes every slot that has a bitmap to <paramref name="path"/>.</summary>
-    public static void Write(string path, IEnumerable<SubImageViewModel> images)
+    /// <summary>Writes the given images to <paramref name="path"/>.</summary>
+    public static void Write(string path, IEnumerable<IconImage> images)
     {
         var entries = images
-            .Where(i => i.Bitmap is not null)
-            .Select(i => BuildEntry(i.Bitmap!, i.Bpp))
+            .Select(i => BuildEntry(i.Bitmap, i.Bpp))
             .ToList();
 
         if (entries.Count == 0)

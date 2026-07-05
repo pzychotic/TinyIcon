@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
+using TinyIcon.Models;
 using TinyIcon.Services;
 
 namespace TinyIcon.ViewModels;
@@ -79,7 +80,10 @@ public partial class MainViewModel : ObservableObject
 
         try
         {
-            IconFileWriter.Write(path, SubImages);
+            var images = SubImages
+                .Where(s => s.Bitmap is not null)
+                .Select(s => new IconImage(s.Bitmap!, s.Bpp));
+            IconFileWriter.Write(path, images);
         }
         catch (Exception ex)
         {
