@@ -7,9 +7,14 @@ namespace TinyIcon.ViewModels;
 public partial class NewIconViewModel : ObservableObject
 {
     public NewIconViewModel()
+        : this(IconResolutions.DefaultChecked, IconResolutions.DefaultChecked)
     {
-        Bpp24 = CreateOptions();
-        Bpp32 = CreateOptions();
+    }
+
+    public NewIconViewModel(IReadOnlyCollection<int> checked24, IReadOnlyCollection<int> checked32)
+    {
+        Bpp24 = CreateOptions(checked24);
+        Bpp32 = CreateOptions(checked32);
 
         foreach (var option in Bpp24.Concat(Bpp32))
             option.PropertyChanged += (_, _) => OnPropertyChanged(nameof(HasSelection));
@@ -28,9 +33,9 @@ public partial class NewIconViewModel : ObservableObject
         .. Bpp32.Where(o => o.IsSelected).Select(o => (o.Size, 32)),
     ];
 
-    private static List<ResolutionOptionViewModel> CreateOptions() =>
+    private static List<ResolutionOptionViewModel> CreateOptions(IReadOnlyCollection<int> checkedSizes) =>
     [
         .. IconResolutions.Typical.Select(
-            size => new ResolutionOptionViewModel(size, IconResolutions.DefaultChecked.Contains(size))),
+            size => new ResolutionOptionViewModel(size, checkedSizes.Contains(size))),
     ];
 }

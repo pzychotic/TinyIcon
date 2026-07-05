@@ -34,6 +34,31 @@ public class NewIconViewModelTests
     }
 
     [Test]
+    public void Constructor_ChecksTheGivenSizesPerDepth()
+    {
+        var viewModel = new NewIconViewModel([8, 64], [256]);
+
+        var checked24 = viewModel.Bpp24.Where(o => o.IsSelected).Select(o => o.Size);
+        var checked32 = viewModel.Bpp32.Where(o => o.IsSelected).Select(o => o.Size);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(checked24, Is.EqualTo([8, 64]));
+            Assert.That(checked32, Is.EqualTo([256]));
+        });
+    }
+
+    [Test]
+    public void Constructor_IgnoresSizesOutsideTheTypicalCatalog()
+    {
+        var viewModel = new NewIconViewModel([12, 16], []);
+
+        var checked24 = viewModel.Bpp24.Where(o => o.IsSelected).Select(o => o.Size);
+
+        Assert.That(checked24, Is.EqualTo([16]));
+    }
+
+    [Test]
     public void HasSelection_IsTrueByDefault()
     {
         var viewModel = new NewIconViewModel();

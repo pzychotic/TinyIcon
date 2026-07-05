@@ -1,5 +1,6 @@
 using Microsoft.Win32;
 using System.Windows;
+using TinyIcon.Models;
 using TinyIcon.ViewModels;
 using TinyIcon.Views;
 
@@ -10,9 +11,18 @@ public sealed class DialogService(Window owner) : IDialogService
 {
     public IReadOnlyList<(int Size, int Bpp)>? ShowNewIconDialog()
     {
-        var viewModel = new NewIconViewModel();
+        var settings = SettingsService.Current;
+        var viewModel = new NewIconViewModel(
+            settings.Bpp24Sizes ?? IconResolutions.DefaultChecked,
+            settings.Bpp32Sizes ?? IconResolutions.DefaultChecked);
         var dialog = new NewIconDialog { DataContext = viewModel, Owner = owner };
-        return dialog.ShowDialog() == true ? viewModel.BuildSpecs() : null;
+        if (dialog.ShowDialog() != true)
+            return null;
+
+        // Remember the confirmed selection as the default for the next New Icon dialog.
+        settings.Bpp24Sizes = [.. viewModel.Bpp24.Where(o => o.IsSelected).Select(o => o.Size)];
+        settings.Bpp32Sizes = [.. viewModel.Bpp32.Where(o => o.IsSelected).Select(o => o.Size)];
+        return viewModel.BuildSpecs();
     }
 
     public string? OpenImageFile()

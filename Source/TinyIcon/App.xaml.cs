@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System.Windows;
+using TinyIcon.Services;
 
 namespace TinyIcon;
 
@@ -20,6 +21,15 @@ public partial class App : Application
         CultureInfo.DefaultThreadCurrentCulture = invariant;
         CultureInfo.DefaultThreadCurrentUICulture = invariant;
 
+        SettingsService.Load();
+
         base.OnStartup(e);
+    }
+
+    protected override void OnExit(ExitEventArgs e)
+    {
+        SettingsService.Save();
+
+        base.OnExit(e);
     }
 }
