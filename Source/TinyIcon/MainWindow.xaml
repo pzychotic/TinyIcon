@@ -96,23 +96,29 @@
         <!-- Toolbar -->
         <ToolBarTray DockPanel.Dock="Top">
             <ToolBar Height="32">
-                <Button Command="{Binding NewIconCommand}" ToolTip="New Icon (Ctrl+N)">
+                <Button Command="{Binding NewIconCommand}" ToolTip="New Icon (Ctrl+N)"
+                        AutomationProperties.Name="New Icon">
                     <Image Source="/Resources/NewIcon.png" />
                 </Button>
-                <Button Command="{Binding ImportImageCommand}" ToolTip="Import Image (Ctrl+I)">
+                <Button Command="{Binding ImportImageCommand}" ToolTip="Import Image (Ctrl+I)"
+                        AutomationProperties.Name="Import Image">
                     <Image Source="/Resources/ImportImage.png" />
                 </Button>
-                <Button Command="{Binding SaveIconCommand}" ToolTip="Save Icon (Ctrl+S)">
+                <Button Command="{Binding SaveIconCommand}" ToolTip="Save Icon (Ctrl+S)"
+                        AutomationProperties.Name="Save Icon">
                     <Image Source="/Resources/SaveIcon.png" />
                 </Button>
                 <Separator />
-                <Button Command="{Binding ZoomInCommand}" ToolTip="Zoom In (Ctrl++)">
+                <Button Command="{Binding ZoomInCommand}" ToolTip="Zoom In (Ctrl++)"
+                        AutomationProperties.Name="Zoom In">
                     <Image Source="/Resources/ZoomIn.png" />
                 </Button>
-                <Button Command="{Binding ZoomOutCommand}" ToolTip="Zoom Out (Ctrl+-)">
+                <Button Command="{Binding ZoomOutCommand}" ToolTip="Zoom Out (Ctrl+-)"
+                        AutomationProperties.Name="Zoom Out">
                     <Image Source="/Resources/ZoomOut.png" />
                 </Button>
-                <Button Command="{Binding ZoomResetCommand}" ToolTip="Reset Zoom (Ctrl+*)">
+                <Button Command="{Binding ZoomResetCommand}" ToolTip="Reset Zoom (Ctrl+*)"
+                        AutomationProperties.Name="Reset Zoom">
                     <Image Source="/Resources/ZoomReset.png" />
                 </Button>
                 <Separator />
