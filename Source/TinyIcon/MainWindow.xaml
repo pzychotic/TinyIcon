@@ -11,6 +11,18 @@
         SnapsToDevicePixels="True" UseLayoutRounding="True"
         Title="TinyIcon" Height="600" Width="900">
 
+    <!-- The gestures shown via InputGestureText in the menu below. -->
+    <Window.InputBindings>
+        <KeyBinding Modifiers="Control" Key="N" Command="{Binding NewIconCommand}" />
+        <KeyBinding Modifiers="Control" Key="I" Command="{Binding ImportImageCommand}" />
+        <KeyBinding Modifiers="Control" Key="S" Command="{Binding SaveIconCommand}" />
+        <KeyBinding Modifiers="Control" Key="Add" Command="{Binding ZoomInCommand}" />
+        <KeyBinding Modifiers="Control" Key="OemPlus" Command="{Binding ZoomInCommand}" />
+        <KeyBinding Modifiers="Control" Key="Subtract" Command="{Binding ZoomOutCommand}" />
+        <KeyBinding Modifiers="Control" Key="OemMinus" Command="{Binding ZoomOutCommand}" />
+        <KeyBinding Modifiers="Control" Key="Multiply" Command="{Binding ZoomResetCommand}" />
+    </Window.InputBindings>
+
     <Window.Resources>
         <!-- Checkerboard backdrop so transparency is visible behind previews and the detail view. -->
         <DrawingBrush x:Key="Checkerboard" TileMode="Tile" Stretch="None"
