@@ -19,6 +19,7 @@ public sealed class PanBehavior : Behavior<FrameworkElement>
 
     private readonly TranslateTransform _transform = new(0.0, 0.0);
 
+    private FrameworkElement? _subscribedHost;
     private Point _dragStart;
     private double _startPanX;
     private double _startPanY;
@@ -52,6 +53,7 @@ public sealed class PanBehavior : Behavior<FrameworkElement>
     {
         AssociatedObject.RenderTransform = _transform;
         AssociatedObject.Loaded += OnLoaded;
+        AssociatedObject.Unloaded += OnUnloaded;
         AssociatedObject.MouseRightButtonDown += OnRightButtonDown;
         AssociatedObject.MouseMove += OnMouseMove;
         AssociatedObject.MouseRightButtonUp += OnRightButtonUp;
@@ -61,13 +63,13 @@ public sealed class PanBehavior : Behavior<FrameworkElement>
     protected override void OnDetaching()
     {
         AssociatedObject.Loaded -= OnLoaded;
+        AssociatedObject.Unloaded -= OnUnloaded;
         AssociatedObject.MouseRightButtonDown -= OnRightButtonDown;
         AssociatedObject.MouseMove -= OnMouseMove;
         AssociatedObject.MouseRightButtonUp -= OnRightButtonUp;
         AssociatedObject.SizeChanged -= OnSizeChanged;
 
-        if (Host is { } host)
-            host.SizeChanged -= OnHostSizeChanged;
+        UnsubscribeHost();
     }
 
     /// <summary>The element the pan is measured against (its parent), or <see langword="null"/> if unset.</summary>
@@ -76,10 +78,27 @@ public sealed class PanBehavior : Behavior<FrameworkElement>
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         // The parent isn't reachable until the element is in the tree; keep centering in sync with its size.
+        // Loaded can fire again when the element re-enters the tree (possibly under a new parent), so the
+        // subscribed host is cached and replaced instead of stacking subscriptions.
+        UnsubscribeHost();
         if (Host is { } host)
+        {
+            _subscribedHost = host;
             host.SizeChanged += OnHostSizeChanged;
+        }
 
         ApplyTransform();
+    }
+
+    private void OnUnloaded(object sender, RoutedEventArgs e) => UnsubscribeHost();
+
+    private void UnsubscribeHost()
+    {
+        if (_subscribedHost is { } host)
+        {
+            host.SizeChanged -= OnHostSizeChanged;
+            _subscribedHost = null;
+        }
     }
 
     private void OnRightButtonDown(object sender, MouseButtonEventArgs e)
