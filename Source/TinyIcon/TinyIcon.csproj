@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <ApplicationIcon>Resources\AppIcon.ico</ApplicationIcon>
@@ -24,23 +24,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Resources\AppIcon.png" />
-    <None Remove="Resources\ImportImage.png" />
-    <None Remove="Resources\NewIcon.png" />
-    <None Remove="Resources\SaveIcon.png" />
-    <None Remove="Resources\ZoomIn.png" />
-    <None Remove="Resources\ZoomOut.png" />
-    <None Remove="Resources\ZoomReset.png" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Resource Include="Resources\AppIcon.png" />
-    <Resource Include="Resources\ImportImage.png" />
-    <Resource Include="Resources\NewIcon.png" />
-    <Resource Include="Resources\SaveIcon.png" />
-    <Resource Include="Resources\ZoomIn.png" />
-    <Resource Include="Resources\ZoomOut.png" />
-    <Resource Include="Resources\ZoomReset.png" />
+    <None Remove="Resources\*.png" />
+    <Resource Include="Resources\*.png" />
   </ItemGroup>
 
   <ItemGroup>
