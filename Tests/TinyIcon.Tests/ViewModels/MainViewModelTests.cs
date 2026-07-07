@@ -251,23 +251,24 @@ public class MainViewModelTests
     // --- Zoom ---------------------------------------------------------------
 
     [Test]
-    public void ZoomIn_MultipliesTheZoomLevel()
+    public void ZoomIn_IncreasesTheZoomLevel()
     {
         var vm = Create(new FakeDialogService());
 
         vm.ZoomInCommand.Execute(null);
 
-        Assert.That(vm.ZoomLevel, Is.EqualTo(1.25).Within(1e-9));
+        Assert.That(vm.ZoomLevel, Is.EqualTo(2.0).Within(1e-9));
     }
 
     [Test]
-    public void ZoomOut_DividesTheZoomLevel()
+    public void ZoomOut_DecreasesTheZoomLevel()
     {
         var vm = Create(new FakeDialogService());
 
+        vm.ZoomLevel = 4.0;
         vm.ZoomOutCommand.Execute(null);
 
-        Assert.That(vm.ZoomLevel, Is.EqualTo(1.0 / 1.25).Within(1e-9));
+        Assert.That(vm.ZoomLevel, Is.EqualTo(3.0).Within(1e-9));
     }
 
     [Test]
@@ -286,10 +287,11 @@ public class MainViewModelTests
     {
         var vm = Create(new FakeDialogService());
 
+        vm.ZoomLevel = 16.0;
         for (int i = 0; i < 100; i++)
             vm.ZoomOutCommand.Execute(null);
 
-        Assert.That(vm.ZoomLevel, Is.EqualTo(0.1));
+        Assert.That(vm.ZoomLevel, Is.EqualTo(1.0));
     }
 
     [Test]

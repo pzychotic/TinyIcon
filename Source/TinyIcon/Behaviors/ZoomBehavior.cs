@@ -51,7 +51,7 @@ public sealed class ZoomBehavior : Behavior<FrameworkElement>
     public static readonly DependencyProperty WheelStepProperty = DependencyProperty.Register(
         nameof(WheelStep), typeof(double), typeof(ZoomBehavior), new PropertyMetadata(ZoomDefaults.Step));
 
-    /// <summary>Multiplicative step applied per mouse-wheel notch.</summary>
+    /// <summary>Additive step applied per mouse-wheel notch.</summary>
     public double WheelStep
     {
         get => (double)GetValue(WheelStepProperty);
@@ -69,7 +69,7 @@ public sealed class ZoomBehavior : Behavior<FrameworkElement>
 
     private void OnMouseWheel(object sender, MouseWheelEventArgs e)
     {
-        ZoomLevel *= e.Delta > 0 ? WheelStep : 1.0 / WheelStep;
+        ZoomLevel += e.Delta > 0 ? WheelStep : -WheelStep;
         e.Handled = true;
     }
 

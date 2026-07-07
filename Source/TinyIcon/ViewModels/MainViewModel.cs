@@ -90,10 +90,10 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void ZoomIn() => ZoomLevel = Math.Clamp(ZoomLevel * ZoomDefaults.Step, ZoomDefaults.Min, ZoomDefaults.Max);
+    private void ZoomIn() => ZoomLevel = Math.Clamp(ZoomLevel + ZoomDefaults.Step, ZoomDefaults.Min, ZoomDefaults.Max);
 
     [RelayCommand]
-    private void ZoomOut() => ZoomLevel = Math.Clamp(ZoomLevel / ZoomDefaults.Step, ZoomDefaults.Min, ZoomDefaults.Max);
+    private void ZoomOut() => ZoomLevel = Math.Clamp(ZoomLevel - ZoomDefaults.Step, ZoomDefaults.Min, ZoomDefaults.Max);
 
     [RelayCommand]
     private void ZoomReset() => ZoomLevel = 1.0;
