@@ -69,7 +69,10 @@ public sealed class ZoomBehavior : Behavior<FrameworkElement>
 
     private void OnMouseWheel(object sender, MouseWheelEventArgs e)
     {
-        ZoomLevel += e.Delta > 0 ? WheelStep : -WheelStep;
+        // Use SetCurrentValue (not the ZoomLevel setter/SetValue) so an existing Binding
+        // on ZoomLevel (e.g. to a view model, two-way by default) isn't torn out.
+        var step = e.Delta > 0 ? WheelStep : -WheelStep;
+        SetCurrentValue(ZoomLevelProperty, Math.Clamp(ZoomLevel + step, MinZoom, MaxZoom));
         e.Handled = true;
     }
 
