@@ -33,7 +33,10 @@ public static class ImageScaler
         RenderOptions.SetBitmapScalingMode(visual, BitmapScalingMode.HighQuality);
         using (var dc = visual.RenderOpen())
         {
-            dc.DrawImage(source, new Rect(x, y, w, h));
+            // force a quadratic canvas to avoid any potential issues with non-square images
+            dc.PushClip(new RectangleGeometry(new Rect(0, 0, size, size)));
+            // scale the source for smoother results instead of scaling the target rectangle (which can produce aliasing artifacts)
+            dc.DrawImage(new TransformedBitmap(source, new ScaleTransform(scale, scale)), new Rect(x, y, w, h));
         }
 
         var target = new RenderTargetBitmap(size, size, 96, 96, PixelFormats.Pbgra32);
