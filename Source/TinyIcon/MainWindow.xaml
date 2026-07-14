@@ -130,7 +130,7 @@
         <!-- Split content -->
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="260" MinWidth="160" />
+                <ColumnDefinition Width="280" MinWidth="160" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" MinWidth="200" />
             </Grid.ColumnDefinitions>
@@ -194,7 +194,7 @@
 
                 <TextBlock Foreground="#FFDDDDDD" HorizontalAlignment="Center" VerticalAlignment="Center"
                            TextAlignment="Center" TextWrapping="Wrap" MaxWidth="300"
-                           Text="Create a new icon (File ▸ New Icon), select a sub-image, then import an image to preview it here.">
+                           Text="Create a new icon (File ▸ New Icon…), then import an image (File ▸ Import Image…) to preview it here.">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">
                             <Setter Property="Visibility" Value="Collapsed" />

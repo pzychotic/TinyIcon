@@ -6,8 +6,8 @@
         xmlns:vm="clr-namespace:TinyIcon.ViewModels"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance Type=vm:NewIconViewModel, IsDesignTimeCreatable=True}"
-        Title="New Icon" Width="380" Height="470"
-        WindowStartupLocation="CenterOwner" ResizeMode="NoResize" ShowInTaskbar="False">
+        Title="New Icon" Width="380" Height="360"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize" ShowInTaskbar="False" SizeToContent="Height">
     <Grid Margin="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
