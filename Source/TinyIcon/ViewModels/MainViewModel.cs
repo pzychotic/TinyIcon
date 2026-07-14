@@ -82,7 +82,7 @@ public partial class MainViewModel : ObservableObject
         {
             var images = SubImages
                 .Where(s => s.Bitmap is not null)
-                .Select(s => new IconImage(s.Bitmap!, s.Bpp));
+                .Select(s => new IconImage(s.Bitmap!, s.Bpp, s.Format));
             IconFileWriter.Write(path, images);
         }
         catch (Exception ex)

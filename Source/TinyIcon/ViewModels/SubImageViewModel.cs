@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Windows.Media.Imaging;
+using TinyIcon.Models;
 
 namespace TinyIcon.ViewModels;
 
@@ -17,6 +18,11 @@ public partial class SubImageViewModel(int width, int height, int bpp) : Observa
 
     public bool HasImage => Bitmap is not null;
 
-    /// <summary>Caption shown under the preview, e.g. "32×32 · 32-bit".</summary>
-    public string Label => $"{Width}×{Height} · {Bpp}-bit";
+    /// <summary>How this sub-image is encoded when saved (PNG for 256×256 32-bit, BMP otherwise).</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Label))]
+    public partial IconImageFormat Format { get; set; } = IconImageFormats.DefaultFor(width, height, bpp);
+
+    /// <summary>Caption shown under the preview, e.g. "32×32 · 32-bit BMP".</summary>
+    public string Label => $"{Width}×{Height} · {Bpp}-bit {(Format == IconImageFormat.Png ? "PNG" : "BMP")}";
 }

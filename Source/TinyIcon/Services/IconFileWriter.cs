@@ -6,9 +6,10 @@ using TinyIcon.Models;
 namespace TinyIcon.Services;
 
 /// <summary>
-/// Writes sub-images to a multi-resolution Windows <c>.ico</c> file. Each entry is encoded as a classic
-/// DIB/BMP blob (BITMAPINFOHEADER + XOR colour data + 1-bit AND transparency mask), honouring its bpp:
-/// 32-bit keeps the alpha channel, 24-bit relies on the AND mask for transparency.
+/// Writes sub-images to a multi-resolution Windows <c>.ico</c> file. Each entry is encoded per its
+/// <see cref="IconImage.Format"/>: either a classic DIB/BMP blob (BITMAPINFOHEADER + XOR colour data +
+/// 1-bit AND transparency mask), honouring its bpp — 32-bit keeps the alpha channel, 24-bit relies on the
+/// AND mask for transparency — or a complete PNG stream (Vista+, typically the 256×256 32-bit entry).
 /// </summary>
 public static class IconFileWriter
 {
@@ -22,7 +23,7 @@ public static class IconFileWriter
     public static void Write(string path, IEnumerable<IconImage> images)
     {
         var entries = images
-            .Select(i => BuildEntry(i.Bitmap, i.Bpp))
+            .Select(BuildEntry)
             .ToList();
 
         if (entries.Count == 0)
@@ -57,24 +58,39 @@ public static class IconFileWriter
 
     private readonly record struct Entry(int Width, int Height, int Bpp, byte[] Data);
 
-    private static Entry BuildEntry(BitmapSource source, int bpp)
+    private static Entry BuildEntry(IconImage image)
     {
+        BitmapSource source = image.Bitmap;
         int width = source.PixelWidth;
         int height = source.PixelHeight;
 
-        // Read straight (non-premultiplied) BGRA pixels, top-down.
+        // Straight (non-premultiplied) BGRA, top-down; PNG icon entries are conventionally 32-bit BGRA too.
         BitmapSource bgraSource = source.Format == PixelFormats.Bgra32
             ? source
             : new FormatConvertedBitmap(source, PixelFormats.Bgra32, null, 0);
+
+        if (image.Format == IconImageFormat.Png)
+            return new Entry(width, height, image.Bpp, BuildPng(bgraSource));
+
         int srcStride = width * 4;
         var pixels = new byte[srcStride * height];
         bgraSource.CopyPixels(pixels, srcStride, 0);
 
-        byte[] data = bpp == 32
+        byte[] data = image.Bpp == 32
             ? BuildDib32(pixels, width, height)
             : BuildDib24(pixels, width, height);
 
-        return new Entry(width, height, bpp, data);
+        return new Entry(width, height, image.Bpp, data);
+    }
+
+    // Vista+ icons embed the complete PNG file as the entry data; readers detect it by its signature.
+    private static byte[] BuildPng(BitmapSource bgraSource)
+    {
+        var encoder = new PngBitmapEncoder();
+        encoder.Frames.Add(BitmapFrame.Create(bgraSource));
+        using var ms = new MemoryStream();
+        encoder.Save(ms);
+        return ms.ToArray();
     }
 
     private static byte[] BuildDib32(byte[] bgra, int width, int height)

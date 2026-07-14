@@ -232,6 +232,39 @@ public class MainViewModelTests
     }
 
     [Test]
+    public void SaveIcon_Writes256x256x32SlotAsPng()
+    {
+        string path = Path.Combine(Path.GetTempPath(), $"tinyicon-test-{Guid.NewGuid():N}.ico");
+        var dialogs = new FakeDialogService
+        {
+            NewIconResult = [(256, 32)],
+            SaveIconResult = path,
+        };
+        var vm = Create(dialogs);
+        vm.NewIconCommand.Execute(null);
+        vm.SubImages[0].Bitmap = BitmapTestHelpers.SolidColor(256, 256, 1, 2, 3, 255);
+
+        try
+        {
+            vm.SaveIconCommand.Execute(null);
+
+            using var reader = new BinaryReader(File.OpenRead(path));
+            reader.BaseStream.Position = 6 + 12; // dwImageOffset within the single ICONDIRENTRY
+            reader.BaseStream.Position = reader.ReadInt32();
+            Assert.Multiple(() =>
+            {
+                Assert.That(reader.ReadBytes(8), Is.EqualTo(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A }));
+                Assert.That(dialogs.Errors, Is.Empty);
+            });
+        }
+        finally
+        {
+            if (File.Exists(path))
+                File.Delete(path);
+        }
+    }
+
+    [Test]
     public void SaveIcon_WhenCancelled_WritesNothing()
     {
         var dialogs = new FakeDialogService

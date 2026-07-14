@@ -1,3 +1,4 @@
+using TinyIcon.Models;
 using TinyIcon.Tests.TestSupport;
 using TinyIcon.ViewModels;
 
@@ -19,12 +20,40 @@ public class SubImageViewModelTests
         });
     }
 
-    [Test]
-    public void Label_CombinesSizeAndColourDepth()
+    [TestCase(32, 32, "32×32 · 32-bit BMP")]
+    [TestCase(256, 32, "256×256 · 32-bit PNG")]
+    public void Label_CombinesSizeColourDepthAndFormat(int size, int bpp, string expected)
     {
-        var subImage = new SubImageViewModel(32, 32, 32);
+        var subImage = new SubImageViewModel(size, size, bpp);
 
-        Assert.That(subImage.Label, Is.EqualTo("32×32 · 32-bit"));
+        Assert.That(subImage.Label, Is.EqualTo(expected));
+    }
+
+    [TestCase(256, 32, IconImageFormat.Png)]
+    [TestCase(256, 24, IconImageFormat.Bmp)]
+    [TestCase(128, 32, IconImageFormat.Bmp)]
+    public void Format_DefaultsPerTheAppRule(int size, int bpp, IconImageFormat expected)
+    {
+        var subImage = new SubImageViewModel(size, size, bpp);
+
+        Assert.That(subImage.Format, Is.EqualTo(expected));
+    }
+
+    [Test]
+    public void Format_Setting_UpdatesLabelAndNotifiesBoth()
+    {
+        var subImage = new SubImageViewModel(256, 256, 32);
+        var raised = new List<string?>();
+        subImage.PropertyChanged += (_, e) => raised.Add(e.PropertyName);
+
+        subImage.Format = IconImageFormat.Bmp;
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(subImage.Label, Is.EqualTo("256×256 · 32-bit BMP"));
+            Assert.That(raised, Does.Contain(nameof(SubImageViewModel.Format)));
+            Assert.That(raised, Does.Contain(nameof(SubImageViewModel.Label)));
+        });
     }
 
     [Test]
