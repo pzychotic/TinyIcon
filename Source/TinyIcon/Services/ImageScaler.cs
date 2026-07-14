@@ -44,4 +44,54 @@ public static class ImageScaler
         target.Freeze();
         return target;
     }
+
+    /// <summary>
+    /// Scales like <see cref="ScaleTo(BitmapSource, int)"/> and, for 24 bpp targets, additionally applies
+    /// <see cref="ApplyBinaryTransparency"/> so the result previews exactly as it will be saved.
+    /// </summary>
+    public static BitmapSource ScaleTo(BitmapSource source, int size, int bpp)
+    {
+        var scaled = ScaleTo(source, size);
+        return bpp == 24 ? ApplyBinaryTransparency(scaled) : scaled;
+    }
+
+    /// <summary>
+    /// Simulates the visual effect of a 24 bpp icon entry with a 1-bit AND mask:
+    /// pixels with alpha below 128 become fully transparent, all others become fully opaque.
+    /// This lets the preview match the final <c>.ico</c> output.
+    /// </summary>
+    public static BitmapSource ApplyBinaryTransparency(BitmapSource source)
+    {
+        // Work in non-premultiplied BGRA so alpha thresholding is straightforward.
+        BitmapSource bgra = source.Format == PixelFormats.Bgra32
+            ? source
+            : new FormatConvertedBitmap(source, PixelFormats.Bgra32, null, 0);
+
+        int width = bgra.PixelWidth;
+        int height = bgra.PixelHeight;
+        int stride = width * 4;
+        var pixels = new byte[stride * height];
+        bgra.CopyPixels(pixels, stride, 0);
+
+        for (int i = 3; i < pixels.Length; i += 4) // walk alpha bytes
+        {
+            if (pixels[i] < IconFileWriter.OpaqueAlphaThreshold)
+            {
+                // Fully transparent – zero out the whole pixel
+                pixels[i - 3] = 0; // B
+                pixels[i - 2] = 0; // G
+                pixels[i - 1] = 0; // R
+                pixels[i] = 0; // A
+            }
+            else
+            {
+                pixels[i] = 255; // Fully opaque
+            }
+        }
+
+        var result = BitmapSource.Create(width, height, 96, 96,
+            PixelFormats.Bgra32, null, pixels, stride);
+        result.Freeze();
+        return result;
+    }
 }

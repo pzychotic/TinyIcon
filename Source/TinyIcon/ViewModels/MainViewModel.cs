@@ -56,7 +56,9 @@ public partial class MainViewModel : ObservableObject
         {
             // Scale everything first so a failure never leaves the slots half old, half new.
             var source = ImageScaler.Load(path);
-            var scaled = SubImages.Select(slot => ImageScaler.ScaleTo(source, slot.Width)).ToList();
+            var scaled = SubImages
+                .Select(slot => ImageScaler.ScaleTo(source, slot.Width, slot.Bpp))
+                .ToList();
             foreach (var (slot, bitmap) in SubImages.Zip(scaled))
                 slot.Bitmap = bitmap;
         }

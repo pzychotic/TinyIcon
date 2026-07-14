@@ -88,6 +88,29 @@ public class IconFileWriterTests
     }
 
     [Test]
+    public void Write_Zeroes24BppColourDataUnderTheTransparencyMask()
+    {
+        string path = TempIcoPath();
+        // Alpha 100 is below the mask threshold, so every pixel is masked out and its
+        // colour must not leak into the XOR data (legacy renderers XOR it over the screen).
+        var bitmap = BitmapTestHelpers.SolidColor(16, 16, 10, 20, 30, 100);
+        try
+        {
+            IconFileWriter.Write(path, [new IconImage(bitmap, 24)]);
+
+            using var reader = new BinaryReader(File.OpenRead(path));
+            reader.BaseStream.Position = 6 + 12; // dwImageOffset within the single ICONDIRENTRY
+            reader.BaseStream.Position = reader.ReadInt32() + 40; // skip BITMAPINFOHEADER
+            var xorData = reader.ReadBytes(16 * 3 * 16); // 16 rows of 16 BGR pixels (stride already 4-byte aligned)
+            Assert.That(xorData, Is.All.Zero);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Test]
     public void Write_RoundTrips_DecodableBackToTheSameSizes()
     {
         string path = TempIcoPath();

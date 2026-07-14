@@ -12,6 +12,12 @@ namespace TinyIcon.Services;
 /// </summary>
 public static class IconFileWriter
 {
+    /// <summary>
+    /// Minimum source alpha for a pixel to count as opaque in the 1-bit AND mask.
+    /// <see cref="ImageScaler.ApplyBinaryTransparency"/> must use the same threshold so previews match saved files.
+    /// </summary>
+    internal const byte OpaqueAlphaThreshold = 128;
+
     /// <summary>Writes the given images to <paramref name="path"/>.</summary>
     public static void Write(string path, IEnumerable<IconImage> images)
     {
@@ -105,9 +111,12 @@ public static class IconFileWriter
             int dst = 0;
             for (int x = 0; x < width; x++, src += 4)
             {
-                row[dst++] = bgra[src];     // B
-                row[dst++] = bgra[src + 1]; // G
-                row[dst++] = bgra[src + 2]; // R
+                // Masked-out pixels must be black: legacy renderers XOR the colour data over the
+                // destination, so stray colour under a transparent mask bit shows as artifacts.
+                bool opaque = bgra[src + 3] >= OpaqueAlphaThreshold;
+                row[dst++] = opaque ? bgra[src] : (byte)0;     // B
+                row[dst++] = opaque ? bgra[src + 1] : (byte)0; // G
+                row[dst++] = opaque ? bgra[src + 2] : (byte)0; // R
             }
             for (; dst < colorStride; dst++)
                 row[dst] = 0;
@@ -133,7 +142,7 @@ public static class IconFileWriter
         w.Write(0);           // biClrImportant
     }
 
-    // 1-bpp transparency mask, rows bottom-up, MSB first. Bit set = transparent (source alpha < 128).
+    // 1-bpp transparency mask, rows bottom-up, MSB first. Bit set = transparent.
     private static void WriteAndMask(BinaryWriter w, byte[] bgra, int width, int height, int maskStride)
     {
         var row = new byte[maskStride];
@@ -143,7 +152,7 @@ public static class IconFileWriter
             int src = y * width * 4 + 3; // alpha byte of the first pixel in this row
             for (int x = 0; x < width; x++, src += 4)
             {
-                if (bgra[src] < 128)
+                if (bgra[src] < OpaqueAlphaThreshold)
                     row[x >> 3] |= (byte)(0x80 >> (x & 7));
             }
             w.Write(row);
