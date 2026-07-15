@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Windows;
 using TinyIcon.Models;
 using TinyIcon.Services;
