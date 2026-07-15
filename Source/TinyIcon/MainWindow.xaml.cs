@@ -21,7 +21,7 @@ public partial class MainWindow : Window
         _settings = settings;
 
         InitializeComponent();
-        DataContext = new MainViewModel(new DialogService(this, settings));
+        DataContext = new MainViewModel(new WpfDialogService(this, settings));
         RestorePlacement(settings);
     }
 

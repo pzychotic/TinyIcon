@@ -7,7 +7,7 @@ using TinyIcon.Views;
 namespace TinyIcon.Services;
 
 /// <summary>WPF implementation of <see cref="IDialogService"/> using Win32 common dialogs.</summary>
-public sealed class DialogService(Window owner, AppSettings settings) : IDialogService
+public sealed class WpfDialogService(Window owner, AppSettings settings) : IDialogService
 {
     public IReadOnlyList<(int Size, int Bpp)>? ShowNewIconDialog()
     {
