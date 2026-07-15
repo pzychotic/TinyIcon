@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System.Windows;
+using TinyIcon.Models;
 using TinyIcon.Services;
 
 namespace TinyIcon;
@@ -21,15 +22,13 @@ public partial class App : Application
         CultureInfo.DefaultThreadCurrentCulture = invariant;
         CultureInfo.DefaultThreadCurrentUICulture = invariant;
 
-        SettingsService.Load();
-
         base.OnStartup(e);
-    }
 
-    protected override void OnExit(ExitEventArgs e)
-    {
-        SettingsService.Save();
+        // composition root: construct services and inject them into the main window
+        var settingsService = new JsonSettingsService();
+        var settings = settingsService.Load() ?? new AppSettings();
 
-        base.OnExit(e);
+        var window = new MainWindow(settingsService, settings);
+        window.Show();
     }
 }

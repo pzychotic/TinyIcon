@@ -5,7 +5,7 @@ using TinyIcon.Services;
 namespace TinyIcon.Tests.Services;
 
 [TestFixture]
-public class SettingsServiceTests
+public class JsonSettingsServiceTests
 {
     private string _directory = null!;
     private string _path = null!;
@@ -25,8 +25,9 @@ public class SettingsServiceTests
     }
 
     [Test]
-    public void SaveTo_ThenLoadFrom_RoundTripsAllProperties()
+    public void Save_ThenLoad_RoundTripsAllProperties()
     {
+        var service = new JsonSettingsService(_directory);
         var settings = new AppSettings
         {
             WindowLeft = 10.5,
@@ -38,12 +39,13 @@ public class SettingsServiceTests
             Bpp32Sizes = [32, 256],
         };
 
-        SettingsService.SaveTo(_path, settings);
-        var loaded = SettingsService.LoadFrom(_path);
+        service.Save(settings);
+        var loaded = service.Load();
 
+        Assert.That(loaded, Is.Not.Null);
         Assert.Multiple(() =>
         {
-            Assert.That(loaded.WindowLeft, Is.EqualTo(10.5));
+            Assert.That(loaded!.WindowLeft, Is.EqualTo(10.5));
             Assert.That(loaded.WindowTop, Is.EqualTo(-20));
             Assert.That(loaded.WindowWidth, Is.EqualTo(1024));
             Assert.That(loaded.WindowHeight, Is.EqualTo(768));
@@ -54,46 +56,42 @@ public class SettingsServiceTests
     }
 
     [Test]
-    public void SaveTo_CreatesTheMissingDirectory()
+    public void Save_CreatesTheMissingDirectory()
     {
-        SettingsService.SaveTo(_path, new AppSettings());
+        var service = new JsonSettingsService(_directory);
+
+        service.Save(new AppSettings());
 
         Assert.That(File.Exists(_path), Is.True);
     }
 
     [Test]
-    public void LoadFrom_ReturnsDefaultsWhenTheFileIsMissing()
+    public void Load_ReturnsNullWhenTheFileIsMissing()
     {
-        var loaded = SettingsService.LoadFrom(_path);
+        var service = new JsonSettingsService(_directory);
 
-        Assert.Multiple(() =>
-        {
-            Assert.That(loaded.WindowLeft, Is.Null);
-            Assert.That(loaded.WindowMaximized, Is.False);
-            Assert.That(loaded.Bpp24Sizes, Is.Null);
-            Assert.That(loaded.Bpp32Sizes, Is.Null);
-        });
+        Assert.That(service.Load(), Is.Null);
     }
 
     [Test]
-    public void LoadFrom_ReturnsDefaultsWhenTheFileIsMalformed()
+    public void Load_ReturnsNullWhenTheFileIsMalformed()
     {
         Directory.CreateDirectory(_directory);
         File.WriteAllText(_path, "{ not valid json !");
 
-        var loaded = SettingsService.LoadFrom(_path);
+        var service = new JsonSettingsService(_directory);
 
-        Assert.That(loaded.WindowWidth, Is.Null);
+        Assert.That(service.Load(), Is.Null);
     }
 
     [Test]
-    public void LoadFrom_ReturnsDefaultsWhenTheFileContainsJsonNull()
+    public void Load_ReturnsNullWhenTheFileContainsJsonNull()
     {
         Directory.CreateDirectory(_directory);
         File.WriteAllText(_path, "null");
 
-        var loaded = SettingsService.LoadFrom(_path);
+        var service = new JsonSettingsService(_directory);
 
-        Assert.That(loaded.WindowHeight, Is.Null);
+        Assert.That(service.Load(), Is.Null);
     }
 }

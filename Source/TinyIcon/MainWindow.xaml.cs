@@ -12,11 +12,17 @@ namespace TinyIcon;
 /// </summary>
 public partial class MainWindow : Window
 {
-    public MainWindow()
+    private readonly ISettingsService _settingsService;
+    private readonly AppSettings _settings;
+
+    public MainWindow(ISettingsService settingsService, AppSettings settings)
     {
+        _settingsService = settingsService;
+        _settings = settings;
+
         InitializeComponent();
-        DataContext = new MainViewModel(new DialogService(this));
-        RestorePlacement(SettingsService.Current);
+        DataContext = new MainViewModel(new DialogService(this, settings));
+        RestorePlacement(settings);
     }
 
     private void Exit_Click(object sender, RoutedEventArgs e) => Close();
@@ -25,7 +31,10 @@ public partial class MainWindow : Window
     {
         base.OnClosing(e);
         if (!e.Cancel)
-            SavePlacement(SettingsService.Current);
+        {
+            SavePlacement(_settings);
+            _settingsService.Save(_settings);
+        }
     }
 
     private void RestorePlacement(AppSettings settings)

@@ -7,11 +7,10 @@ using TinyIcon.Views;
 namespace TinyIcon.Services;
 
 /// <summary>WPF implementation of <see cref="IDialogService"/> using Win32 common dialogs.</summary>
-public sealed class DialogService(Window owner) : IDialogService
+public sealed class DialogService(Window owner, AppSettings settings) : IDialogService
 {
     public IReadOnlyList<(int Size, int Bpp)>? ShowNewIconDialog()
     {
-        var settings = SettingsService.Current;
         var viewModel = new NewIconViewModel(
             settings.Bpp24Sizes ?? IconResolutions.DefaultChecked,
             settings.Bpp32Sizes ?? IconResolutions.DefaultChecked);
