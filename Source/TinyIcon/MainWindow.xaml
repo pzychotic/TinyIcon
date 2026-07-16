@@ -176,8 +176,7 @@
                         </Style>
                     </Canvas.Style>
                     <!-- At Canvas (0,0): PanBehavior owns centering so a zoomed, oversized image stays centered. -->
-                    <Border BorderBrush="Black" BorderThickness="1"
-                            Background="{StaticResource Checkerboard}">
+                    <Border Background="{StaticResource Checkerboard}">
                         <b:Interaction.Behaviors>
                             <!-- Recenter when the selected sub-image changes. -->
                             <beh:PanBehavior MinVisibleFraction="0.25" ResetSignal="{Binding SelectedSubImage}" />
