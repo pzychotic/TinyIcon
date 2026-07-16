@@ -17,4 +17,10 @@ public sealed class AppSettings
 
     /// <summary>Sizes last checked in the 32-bpp column of the New Icon dialog.</summary>
     public int[]? Bpp32Sizes { get; set; }
+
+    /// <summary>Whether the 24-bpp column of the New Icon dialog was last enabled (default: off).</summary>
+    public bool? Bpp24Enabled { get; set; }
+
+    /// <summary>Whether the 32-bpp column of the New Icon dialog was last enabled (default: on).</summary>
+    public bool? Bpp32Enabled { get; set; }
 }

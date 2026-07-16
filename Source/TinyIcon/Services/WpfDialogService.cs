@@ -13,7 +13,9 @@ public sealed class WpfDialogService(Window owner, AppSettings settings) : IDial
     {
         var viewModel = new NewIconViewModel(
             settings.Bpp24Sizes ?? IconResolutions.DefaultChecked,
-            settings.Bpp32Sizes ?? IconResolutions.DefaultChecked);
+            settings.Bpp32Sizes ?? IconResolutions.DefaultChecked,
+            settings.Bpp24Enabled ?? false,
+            settings.Bpp32Enabled ?? true);
         var dialog = new NewIconDialog { DataContext = viewModel, Owner = owner };
         if (dialog.ShowDialog() != true)
             return null;
@@ -21,6 +23,8 @@ public sealed class WpfDialogService(Window owner, AppSettings settings) : IDial
         // Remember the confirmed selection as the default for the next New Icon dialog.
         settings.Bpp24Sizes = [.. viewModel.Bpp24.Where(o => o.IsSelected).Select(o => o.Size)];
         settings.Bpp32Sizes = [.. viewModel.Bpp32.Where(o => o.IsSelected).Select(o => o.Size)];
+        settings.Bpp24Enabled = viewModel.Bpp24Enabled;
+        settings.Bpp32Enabled = viewModel.Bpp32Enabled;
         return viewModel.BuildSpecs();
     }
 

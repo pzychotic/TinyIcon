@@ -37,6 +37,8 @@ public class JsonSettingsServiceTests
             WindowMaximized = true,
             Bpp24Sizes = [16, 48],
             Bpp32Sizes = [32, 256],
+            Bpp24Enabled = true,
+            Bpp32Enabled = false,
         };
 
         service.Save(settings);
@@ -52,6 +54,25 @@ public class JsonSettingsServiceTests
             Assert.That(loaded.WindowMaximized, Is.True);
             Assert.That(loaded.Bpp24Sizes, Is.EqualTo([16, 48]));
             Assert.That(loaded.Bpp32Sizes, Is.EqualTo([32, 256]));
+            Assert.That(loaded.Bpp24Enabled, Is.True);
+            Assert.That(loaded.Bpp32Enabled, Is.False);
+        });
+    }
+
+    [Test]
+    public void Load_LeavesTheEnabledFlagsNullWhenTheFilePredatesThem()
+    {
+        Directory.CreateDirectory(_directory);
+        File.WriteAllText(_path, """{ "Bpp24Sizes": [16], "Bpp32Sizes": [32] }""");
+
+        var service = new JsonSettingsService(_directory);
+        var loaded = service.Load();
+
+        Assert.That(loaded, Is.Not.Null);
+        Assert.Multiple(() =>
+        {
+            Assert.That(loaded!.Bpp24Enabled, Is.Null);
+            Assert.That(loaded.Bpp32Enabled, Is.Null);
         });
     }
 

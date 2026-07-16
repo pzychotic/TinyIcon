@@ -24,8 +24,11 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <GroupBox Grid.Column="0" Header="24-bit" Margin="0,0,6,0">
-                <ItemsControl ItemsSource="{Binding Bpp24}" Margin="8">
+            <GroupBox Grid.Column="0" Margin="0,0,6,0">
+                <GroupBox.Header>
+                    <CheckBox Content="24-bit" IsChecked="{Binding Bpp24Enabled}" />
+                </GroupBox.Header>
+                <ItemsControl ItemsSource="{Binding Bpp24}" Margin="8" IsEnabled="{Binding Bpp24Enabled}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <CheckBox Margin="0,4" Content="{Binding Label}" IsChecked="{Binding IsSelected}" />
@@ -34,8 +37,11 @@
                 </ItemsControl>
             </GroupBox>
 
-            <GroupBox Grid.Column="1" Header="32-bit" Margin="6,0,0,0">
-                <ItemsControl ItemsSource="{Binding Bpp32}" Margin="8">
+            <GroupBox Grid.Column="1" Margin="6,0,0,0">
+                <GroupBox.Header>
+                    <CheckBox Content="32-bit" IsChecked="{Binding Bpp32Enabled}" />
+                </GroupBox.Header>
+                <ItemsControl ItemsSource="{Binding Bpp32}" Margin="8" IsEnabled="{Binding Bpp32Enabled}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <CheckBox Margin="0,4" Content="{Binding Label}" IsChecked="{Binding IsSelected}" />
