@@ -3,9 +3,6 @@ layout: default
 title: TinyIcon
 ---
 
-> [!NOTE]
-> 🚧 Work in progress 🚧
-
 # TinyIcon
 
 [![GitHub License](https://badgen.net/github/license/pzychotic/TinyIcon)](https://github.com/pzychotic/TinyIcon/blob/main/LICENSE)
@@ -18,7 +15,15 @@ Define your wanted resolutions, import image, save. Done!
 
 ## Features
 
-- tbd
+- Multi-resolution icons: pick the sub-images your `.ico` should contain from 8×8 up to 256×256
+- Colour depth: 24-bit and/or 32-bit entries, selectable independently of each other
+- Import a source image (`.png`, `.bmp`, `.jpg`, `.gif`, `.tiff`) that gets downscaled into every sub-image
+- Non-square sources are fitted and centred with transparent padding, so the aspect ratio is kept
+- Full alpha transparency for 32-bit entries; 24-bit entries use a 1-bit mask
+- Automatic encoding per sub-image: PNG for 256×256 32-bit entries, classic DIB/BMP for the rest
+- Detail view with zoom (Ctrl +/-/\*, or mouse wheel), pan (right mouse drag, right click recentres)
+- Keyboard shortcuts for the whole workflow: Ctrl+N (new icon), Ctrl+I (import image), Ctrl+S (save icon)
+- Remembers your window placement and the last resolution selection between runs
 
 ## Dependencies
 

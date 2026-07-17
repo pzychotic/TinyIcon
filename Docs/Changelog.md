@@ -7,7 +7,7 @@ title: Changelog
 
 All notable changes to TinyIcon are documented in this file.
 
-## v1.0.0 - tbd
+## v1.0.0 - 2026-07-17
 
 First official release.
 
