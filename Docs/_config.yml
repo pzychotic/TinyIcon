@@ -1,10 +1,21 @@
 title: TinyIcon
 description: A tiny windows icon file (.ico) creator
 remote_theme: pages-themes/cayman@v0.2.0
+url: https://pzychotic.github.io
 baseurl: /TinyIcon
+
+# Social media / link preview (Open Graph + Twitter cards), emitted by {% seo %}.
+# jekyll-seo-tag only reads `image` from page front matter, so inject it into
+# every page via defaults. Override per page by setting `image:` there.
+defaults:
+  - scope:
+      path: ''
+    values:
+      image: /assets/social-preview.png
 
 plugins:
   - jekyll-remote-theme
+  - jekyll-seo-tag
 
 # Repo metadata used by the theme header
 github:
