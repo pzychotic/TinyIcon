@@ -21,38 +21,50 @@ public static class ImageScaler
     /// Scales <paramref name="source"/> to fit a <paramref name="size"/>×<paramref name="size"/> square,
     /// preserving aspect ratio and centering the result with transparent padding.
     /// </summary>
-    public static BitmapSource ScaleTo(BitmapSource source, int size)
+    public static BitmapSource ScaleTo(BitmapSource source, int size) => ScaleToBox(source, size, size);
+
+    /// <summary>
+    /// Scales <paramref name="source"/> to fit a <paramref name="width"/>×<paramref name="height"/> box,
+    /// preserving aspect ratio and centering the result with transparent padding. Icons read from a file
+    /// may have non-square sub-images, so the target box is not assumed to be square.
+    /// </summary>
+    public static BitmapSource ScaleToBox(BitmapSource source, int width, int height)
     {
-        double scale = Math.Min((double)size / source.PixelWidth, (double)size / source.PixelHeight);
+        double scale = Math.Min((double)width / source.PixelWidth, (double)height / source.PixelHeight);
         double w = Math.Round(source.PixelWidth * scale);
         double h = Math.Round(source.PixelHeight * scale);
-        double x = Math.Round((size - w) / 2);
-        double y = Math.Round((size - h) / 2);
+        double x = Math.Round((width - w) / 2);
+        double y = Math.Round((height - h) / 2);
 
         var visual = new DrawingVisual();
         RenderOptions.SetBitmapScalingMode(visual, BitmapScalingMode.HighQuality);
         using (var dc = visual.RenderOpen())
         {
-            // force a quadratic canvas to avoid any potential issues with non-square images
-            dc.PushClip(new RectangleGeometry(new Rect(0, 0, size, size)));
+            // clip to the target box so nothing bleeds outside it
+            dc.PushClip(new RectangleGeometry(new Rect(0, 0, width, height)));
             // scale the source for smoother results instead of scaling the target rectangle (which can produce aliasing artifacts)
             dc.DrawImage(new TransformedBitmap(source, new ScaleTransform(scale, scale)), new Rect(x, y, w, h));
         }
 
-        var target = new RenderTargetBitmap(size, size, 96, 96, PixelFormats.Pbgra32);
+        var target = new RenderTargetBitmap(width, height, 96, 96, PixelFormats.Pbgra32);
         target.Render(visual);
         target.Freeze();
         return target;
     }
 
     /// <summary>
-    /// Scales like <see cref="ScaleTo(BitmapSource, int)"/> and, for 24 bpp targets, additionally applies
-    /// <see cref="ApplyBinaryTransparency"/> so the result previews exactly as it will be saved.
+    /// Scales like <see cref="ScaleTo(BitmapSource, int)"/> and, for every target below 32 bpp, additionally
+    /// applies <see cref="ApplyBinaryTransparency"/> so the result previews exactly as it will be saved —
+    /// those entries are written as 24-bit DIBs whose transparency lives in the 1-bit AND mask.
     /// </summary>
-    public static BitmapSource ScaleTo(BitmapSource source, int size, int bpp)
+    public static BitmapSource ScaleTo(BitmapSource source, int size, int bpp) =>
+        ScaleToBox(source, size, size, bpp);
+
+    /// <summary>Non-square counterpart of <see cref="ScaleTo(BitmapSource, int, int)"/>.</summary>
+    public static BitmapSource ScaleToBox(BitmapSource source, int width, int height, int bpp)
     {
-        var scaled = ScaleTo(source, size);
-        return bpp == 24 ? ApplyBinaryTransparency(scaled) : scaled;
+        var scaled = ScaleToBox(source, width, height);
+        return bpp == 32 ? scaled : ApplyBinaryTransparency(scaled);
     }
 
     /// <summary>

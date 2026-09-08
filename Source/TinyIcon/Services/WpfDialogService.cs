@@ -38,6 +38,17 @@ public sealed class WpfDialogService(Window owner, AppSettings settings) : IDial
         return dialog.ShowDialog(owner) == true ? dialog.FileName : null;
     }
 
+    public string? OpenIconFile()
+    {
+        var dialog = new OpenFileDialog
+        {
+            Title = "Open Icon",
+            Filter = "Icon files|*.ico|All files|*.*",
+            DefaultExt = ".ico",
+        };
+        return dialog.ShowDialog(owner) == true ? dialog.FileName : null;
+    }
+
     public string? SaveIconFile()
     {
         var dialog = new SaveFileDialog

@@ -72,15 +72,19 @@ public static class IconFileWriter
         if (image.Format == IconImageFormat.Png)
             return new Entry(width, height, image.Bpp, BuildPng(bgraSource));
 
+        // Only 32- and 24-bit DIBs are produced. An image carrying any other depth — e.g. a palettized
+        // entry read back by IconFileReader — is written as 24-bit, so the headers must say so too.
+        int storedBpp = image.Bpp == 32 ? 32 : 24;
+
         int srcStride = width * 4;
         var pixels = new byte[srcStride * height];
         bgraSource.CopyPixels(pixels, srcStride, 0);
 
-        byte[] data = image.Bpp == 32
+        byte[] data = storedBpp == 32
             ? BuildDib32(pixels, width, height)
             : BuildDib24(pixels, width, height);
 
-        return new Entry(width, height, image.Bpp, data);
+        return new Entry(width, height, storedBpp, data);
     }
 
     // Vista+ icons embed the complete PNG file as the entry data; readers detect it by its signature.

@@ -211,6 +211,31 @@ public class IconFileWriterTests
         }
     }
 
+    [Test]
+    public void Write_StoresADepthOtherThan32AsA24BitEntry()
+    {
+        // Palettized entries can arrive via IconFileReader; only 24- and 32-bit DIBs are produced,
+        // so the directory and the bitmap header must both report the depth actually written.
+        string path = TempIcoPath();
+        try
+        {
+            IconFileWriter.Write(path, [Slot(16, 8)]);
+
+            using var reader = new BinaryReader(File.OpenRead(path));
+            Assert.Multiple(() =>
+            {
+                Assert.That(ReadEntryBpps(path), Is.EqualTo([24]), "directory entry");
+                // biBitCount sits 14 bytes into the BITMAPINFOHEADER.
+                Assert.That(BitConverter.ToUInt16(ReadBlobStart(reader, entryIndex: 0, count: 16), 14),
+                    Is.EqualTo(24), "bitmap header");
+            });
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
     private static byte[] ReadBlobStart(BinaryReader reader, int entryIndex, int count)
     {
         reader.BaseStream.Position = 6 + 16 * entryIndex + 12; // dwImageOffset within the entry
