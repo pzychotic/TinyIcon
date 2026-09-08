@@ -61,6 +61,55 @@ public class IconFileReaderTests
         Assert.That(pixels[0..4], Is.EqualTo(new byte[] { 10, 20, 30, 255 }));
     }
 
+    [TestCase(1, 2)]
+    [TestCase(4, 16)]
+    [TestCase(8, 256)]
+    public void Read_RoundTripsAPalettizedEntryWithoutLosingAColour(int bpp, int maxColors)
+    {
+        // An image already within the depth's colour budget must survive write-then-read untouched: this
+        // is what makes opening a legacy icon and saving it again lossless. One colour is reserved for
+        // black (index 0), so fill the budget minus that.
+        var source = BitmapTestHelpers.DistinctColors(16, 16, maxColors - 1);
+        var expected = GetPixels(source);
+
+        var images = RoundTrip(new IconImage(source, bpp, IconImageFormat.Bmp));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(images[0].Bpp, Is.EqualTo(bpp));
+            Assert.That(GetPixels(images[0].Bitmap), Is.EqualTo(expected));
+        });
+    }
+
+    [Test]
+    public void Read_RoundTripsA16BppEntryBitForBit()
+    {
+        // Colours already snapped to 5-5-5 come back exactly, because Expand5 inverts the writer's shift.
+        var source = BitmapTestHelpers.SolidColor(16, 16, b: 0x08, g: 0x52, r: 0xFF, a: 255);
+        var images = RoundTrip(new IconImage(source, 16, IconImageFormat.Bmp));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(images[0].Bpp, Is.EqualTo(16));
+            Assert.That(GetPixels(images[0].Bitmap)[0..4], Is.EqualTo(new byte[] { 0x08, 0x52, 0xFF, 255 }));
+        });
+    }
+
+    [Test]
+    public void Read_RestoresTransparencyFromTheAndMaskOfAPalettizedEntry()
+    {
+        var source = BitmapTestHelpers.HalfTransparent(8, 8, b: 10, g: 20, r: 30);
+        var images = RoundTrip(new IconImage(source, 8, IconImageFormat.Bmp));
+        var pixels = GetPixels(images[0].Bitmap);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(images[0].Bpp, Is.EqualTo(8));
+            Assert.That(pixels[0..4], Is.EqualTo(new byte[] { 10, 20, 30, 255 }), "opaque half");
+            Assert.That(pixels[16..20], Is.EqualTo(new byte[] { 0, 0, 0, 0 }), "transparent half");
+        });
+    }
+
     [Test]
     public void Read_RestoresTransparencyFromTheAndMaskOfA24BppEntry()
     {
@@ -126,6 +175,45 @@ public class IconFileReaderTests
             Assert.That(pixels[0..4], Is.EqualTo(new byte[] { 255, 0, 0, 255 }), "top-left is blue");
             Assert.That(pixels[4..8], Is.EqualTo(new byte[] { 0, 0, 255, 255 }), "next pixel is red");
         });
+    }
+
+    [Test]
+    public void Read_ThenWrite_PreservesAForeignPalettizedEntry()
+    {
+        // End to end on bytes this project did not author: a hand-built 8 bpp entry must come back out at
+        // 8 bpp, with its colours intact and in a file the platform codec still accepts.
+        byte[] palette = [255, 0, 0, 0, /**/ 0, 0, 255, 0]; // index 0 = blue, index 1 = red
+        byte[] rows = new byte[8 * 4];
+        for (int y = 0; y < 4; y++)
+        {
+            for (int x = 0; x < 4; x++)
+                rows[y * 8 + x] = (byte)((x + y) & 1);
+        }
+
+        byte[] dib = BuildDib(4, 4, bpp: 8, palette, rows, mask: new byte[4 * 4]);
+        var original = IconFileReader.Read(BuildIco((4, 4, 8, dib)));
+        var expected = GetPixels(original[0].Bitmap);
+
+        string path = TempIcoPath();
+        try
+        {
+            IconFileWriter.Write(path, original);
+            var reopened = IconFileReader.Read(path);
+
+            using var stream = File.OpenRead(path);
+            var decoder = new IconBitmapDecoder(stream, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(reopened[0].Bpp, Is.EqualTo(8), "depth survives");
+                Assert.That(GetPixels(reopened[0].Bitmap), Is.EqualTo(expected), "colours survive");
+                Assert.That(decoder.Frames, Has.Count.EqualTo(1), "platform codec accepts it");
+            });
+        }
+        finally
+        {
+            File.Delete(path);
+        }
     }
 
     [Test]

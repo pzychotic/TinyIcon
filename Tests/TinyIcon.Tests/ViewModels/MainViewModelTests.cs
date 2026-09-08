@@ -328,6 +328,43 @@ public class MainViewModelTests
     }
 
     [Test]
+    public void OpenIcon_ThenSaveIcon_PreservesTheDepthOfEveryEntry()
+    {
+        // The point of the feature: a legacy icon must not be promoted to 24/32 bpp by a round trip
+        // through the app.
+        string source = Path.Combine(Path.GetTempPath(), $"tinyicon-test-{Guid.NewGuid():N}.ico");
+        string saved = Path.Combine(Path.GetTempPath(), $"tinyicon-test-{Guid.NewGuid():N}.ico");
+        IconFileWriter.Write(source,
+        [
+            new IconImage(BitmapTestHelpers.DistinctColors(16, 16, 12), 4, IconImageFormat.Bmp),
+            new IconImage(BitmapTestHelpers.DistinctColors(32, 32, 200), 8, IconImageFormat.Bmp),
+            new IconImage(BitmapTestHelpers.SolidColor(48, 48, 8, 82, 255, 255), 16, IconImageFormat.Bmp),
+        ]);
+
+        var dialogs = new FakeDialogService { OpenIconResult = source, SaveIconResult = saved };
+        var vm = Create(dialogs);
+
+        try
+        {
+            vm.OpenIconCommand.Execute(null);
+            vm.SaveIconCommand.Execute(null);
+
+            var reopened = IconFileReader.Read(saved);
+            Assert.Multiple(() =>
+            {
+                Assert.That(dialogs.Errors, Is.Empty);
+                Assert.That(vm.SubImages.Select(s => s.Bpp), Is.EqualTo([4, 8, 16]), "slots");
+                Assert.That(reopened.Select(i => i.Bpp), Is.EqualTo([4, 8, 16]), "saved file");
+            });
+        }
+        finally
+        {
+            File.Delete(source);
+            File.Delete(saved);
+        }
+    }
+
+    [Test]
     public void OpenIcon_WhenCancelled_LeavesSlotsUntouched()
     {
         var dialogs = new FakeDialogService { NewIconResult = [(16, 32)], OpenIconResult = null };

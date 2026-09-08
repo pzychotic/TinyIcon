@@ -7,9 +7,11 @@ namespace TinyIcon.Services;
 
 /// <summary>
 /// Writes sub-images to a multi-resolution Windows <c>.ico</c> file. Each entry is encoded per its
-/// <see cref="IconImage.Format"/>: either a classic DIB/BMP blob (BITMAPINFOHEADER + XOR colour data +
-/// 1-bit AND transparency mask), honouring its bpp — 32-bit keeps the alpha channel, 24-bit relies on the
-/// AND mask for transparency — or a complete PNG stream (Vista+, typically the 256×256 32-bit entry).
+/// <see cref="IconImage.Format"/>: either a classic DIB/BMP blob (BITMAPINFOHEADER + optional colour table +
+/// XOR colour data + 1-bit AND transparency mask), honouring its bpp — 32-bit keeps the alpha channel, every
+/// lesser depth relies on the AND mask for transparency — or a complete PNG stream (Vista+, typically the
+/// 256×256 32-bit entry). 1, 4, 8, 16, 24 and 32 bpp DIBs are produced, matching what
+/// <see cref="IconFileReader"/> can decode, so an icon opened from a file saves back at its original depth.
 /// </summary>
 public static class IconFileWriter
 {
@@ -43,7 +45,8 @@ public static class IconFileWriter
         {
             writer.Write((byte)(e.Width >= 256 ? 0 : e.Width));
             writer.Write((byte)(e.Height >= 256 ? 0 : e.Height));
-            writer.Write((byte)0);           // colour count (0 for >= 8bpp)
+            // Colour count; the field is a byte, so a full 256-entry table is recorded as 0, as is "no table".
+            writer.Write((byte)(e.PaletteCount < 256 ? e.PaletteCount : 0));
             writer.Write((byte)0);           // reserved
             writer.Write((ushort)1);         // colour planes
             writer.Write((ushort)e.Bpp);     // bits per pixel
@@ -56,7 +59,7 @@ public static class IconFileWriter
             writer.Write(e.Data);
     }
 
-    private readonly record struct Entry(int Width, int Height, int Bpp, byte[] Data);
+    private readonly record struct Entry(int Width, int Height, int Bpp, int PaletteCount, byte[] Data);
 
     private static Entry BuildEntry(IconImage image)
     {
@@ -70,21 +73,29 @@ public static class IconFileWriter
             : new FormatConvertedBitmap(source, PixelFormats.Bgra32, null, 0);
 
         if (image.Format == IconImageFormat.Png)
-            return new Entry(width, height, image.Bpp, BuildPng(bgraSource));
+            return new Entry(width, height, image.Bpp, 0, BuildPng(bgraSource));
 
-        // Only 32- and 24-bit DIBs are produced. An image carrying any other depth — e.g. a palettized
-        // entry read back by IconFileReader — is written as 24-bit, so the headers must say so too.
-        int storedBpp = image.Bpp == 32 ? 32 : 24;
+        // Only the depths IconFileReader can decode are written; anything else degrades to 24-bit rather
+        // than producing a header we could not read back.
+        int storedBpp = image.Bpp is 1 or 4 or 8 or 16 or 24 or 32 ? image.Bpp : 24;
 
         int srcStride = width * 4;
         var pixels = new byte[srcStride * height];
         bgraSource.CopyPixels(pixels, srcStride, 0);
 
-        byte[] data = storedBpp == 32
-            ? BuildDib32(pixels, width, height)
-            : BuildDib24(pixels, width, height);
+        // ImageScaler already reduced imported images for the preview; doing it again here is a no-op for
+        // those and quantizes anything that reached a slot by another route.
+        var reduced = ColorReducer.Reduce(pixels, width, height, storedBpp);
 
-        return new Entry(width, height, storedBpp, data);
+        byte[] data = storedBpp switch
+        {
+            32 => BuildDib32(reduced.Bgra, width, height),
+            24 => BuildDib24(reduced.Bgra, width, height),
+            16 => BuildDib16(reduced.Bgra, width, height),
+            _ => BuildDibIndexed(reduced, width, height, storedBpp),
+        };
+
+        return new Entry(width, height, storedBpp, reduced.Palette.Length / 4, data);
     }
 
     // Vista+ icons embed the complete PNG file as the entry data; readers detect it by its signature.
@@ -104,7 +115,7 @@ public static class IconFileWriter
 
         using var ms = new MemoryStream(40 + (colorStride + maskStride) * height);
         using var w = new BinaryWriter(ms);
-        WriteHeader(w, width, height, 32);
+        WriteHeader(w, width, height, 32, 0);
 
         // XOR mask: BGRA colour data, rows bottom-up.
         for (int y = height - 1; y >= 0; y--)
@@ -121,7 +132,7 @@ public static class IconFileWriter
 
         using var ms = new MemoryStream(40 + (colorStride + maskStride) * height);
         using var w = new BinaryWriter(ms);
-        WriteHeader(w, width, height, 24);
+        WriteHeader(w, width, height, 24, 0);
 
         // XOR mask: BGR colour data, rows bottom-up and padded.
         var row = new byte[colorStride];
@@ -147,7 +158,73 @@ public static class IconFileWriter
         return ms.ToArray();
     }
 
-    private static void WriteHeader(BinaryWriter w, int width, int height, int bpp)
+    // BI_RGB at 16 bpp is XRGB1555; IconFileReader.Expand5 inverts the shift below exactly.
+    private static byte[] BuildDib16(byte[] bgra, int width, int height)
+    {
+        int colorStride = ((width * 16) + 31) / 32 * 4;
+        int maskStride = AndMaskStride(width);
+
+        using var ms = new MemoryStream(40 + (colorStride + maskStride) * height);
+        using var w = new BinaryWriter(ms);
+        WriteHeader(w, width, height, 16, 0);
+
+        var row = new byte[colorStride];
+        for (int y = height - 1; y >= 0; y--)
+        {
+            Array.Clear(row);
+            int src = y * width * 4;
+            int dst = 0;
+            for (int x = 0; x < width; x++, src += 4, dst += 2)
+            {
+                // Masked-out pixels stay zero (black); see BuildDib24 for why that matters.
+                if (bgra[src + 3] < OpaqueAlphaThreshold)
+                    continue;
+
+                int value = ((bgra[src + 2] >> 3) << 10) | ((bgra[src + 1] >> 3) << 5) | (bgra[src] >> 3);
+                row[dst] = (byte)value;
+                row[dst + 1] = (byte)(value >> 8);
+            }
+            w.Write(row);
+        }
+
+        WriteAndMask(w, bgra, width, height, maskStride);
+        return ms.ToArray();
+    }
+
+    // 1, 4 and 8 bpp: a BGRA colour table follows the header, then packed indices into it.
+    private static byte[] BuildDibIndexed(ReducedImage reduced, int width, int height, int bpp)
+    {
+        byte[] indices = reduced.Indices!;
+        byte[] palette = reduced.Palette;
+
+        int colorStride = ((width * bpp) + 31) / 32 * 4;
+        int maskStride = AndMaskStride(width);
+        int perByte = 8 / bpp;
+
+        using var ms = new MemoryStream(40 + palette.Length + (colorStride + maskStride) * height);
+        using var w = new BinaryWriter(ms);
+        WriteHeader(w, width, height, bpp, palette.Length / 4);
+        w.Write(palette);
+
+        var row = new byte[colorStride];
+        for (int y = height - 1; y >= 0; y--)
+        {
+            Array.Clear(row);
+            int src = y * width;
+            for (int x = 0; x < width; x++)
+            {
+                // Indices pack MSB-first within each byte; IconFileReader.ReadIndex unpacks them the same way.
+                int shift = (perByte - 1 - (x % perByte)) * bpp;
+                row[x / perByte] |= (byte)(indices[src + x] << shift);
+            }
+            w.Write(row);
+        }
+
+        WriteAndMask(w, reduced.Bgra, width, height, maskStride);
+        return ms.ToArray();
+    }
+
+    private static void WriteHeader(BinaryWriter w, int width, int height, int bpp, int clrUsed)
     {
         w.Write(40);          // biSize
         w.Write(width);       // biWidth
@@ -158,7 +235,7 @@ public static class IconFileWriter
         w.Write(0);           // biSizeImage
         w.Write(0);           // biXPelsPerMeter
         w.Write(0);           // biYPelsPerMeter
-        w.Write(0);           // biClrUsed
+        w.Write(clrUsed);     // biClrUsed
         w.Write(0);           // biClrImportant
     }
 
