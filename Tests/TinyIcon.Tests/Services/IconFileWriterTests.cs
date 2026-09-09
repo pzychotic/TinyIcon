@@ -274,10 +274,12 @@ public class IconFileWriterTests
 
             Assert.Multiple(() =>
             {
-                Assert.That(clrUsed, Is.EqualTo(5), "biClrUsed");
-                Assert.That(ReadEntryColorCounts(path), Is.EqualTo([5]), "bColorCount");
+                // Only 5 colours are used, but the table is padded to the full 256 entries an 8 bpp DIB
+                // implies: readers that ignore biClrUsed expect the pixel data at a fixed offset.
+                Assert.That(clrUsed, Is.EqualTo(256), "biClrUsed");
+                Assert.That(ReadEntryColorCounts(path), Is.EqualTo([0]), "bColorCount (256 records as 0)");
                 // 40-byte header + colour table + 8 rows of indices + 8 rows of AND mask, each 4-byte aligned.
-                Assert.That(ReadEntrySizes(path), Is.EqualTo([40 + 5 * 4 + 8 * 8 + 8 * 4]), "bytes in resource");
+                Assert.That(ReadEntrySizes(path), Is.EqualTo([40 + 256 * 4 + 8 * 8 + 8 * 4]), "bytes in resource");
             });
         }
         finally
@@ -298,9 +300,10 @@ public class IconFileWriterTests
             IconFileWriter.Write(path, [slot]);
 
             using var reader = new BinaryReader(File.OpenRead(path));
-            var blob = ReadBlobStart(reader, entryIndex: 0, count: 40 + 2 * 4 + 8);
+            const int PaletteBytes = 256 * 4; // 8 bpp always ships a full colour table
+            var blob = ReadBlobStart(reader, entryIndex: 0, count: 40 + PaletteBytes + 8);
             var firstEntry = blob[40..44];
-            var lastRow = blob[(40 + 2 * 4)..]; // rows are bottom-up, so this is the image's last row
+            var lastRow = blob[(40 + PaletteBytes)..]; // rows are bottom-up, so this is the image's last row
 
             Assert.Multiple(() =>
             {

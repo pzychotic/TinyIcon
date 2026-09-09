@@ -8,7 +8,9 @@ namespace TinyIcon.Services;
 /// <summary>
 /// Writes sub-images to a multi-resolution Windows <c>.ico</c> file. Each entry is encoded per its
 /// <see cref="IconImage.Format"/>: either a classic DIB/BMP blob (BITMAPINFOHEADER + optional colour table +
-/// XOR colour data + 1-bit AND transparency mask), honouring its bpp — 32-bit keeps the alpha channel, every
+/// XOR colour data + 1-bit AND transparency mask), honouring its bpp — indexed depths always ship a full
+/// 2^bpp colour table, because many readers locate the pixel data at that fixed offset rather than from
+/// biClrUsed — 32-bit keeps the alpha channel, every
 /// lesser depth relies on the AND mask for transparency — or a complete PNG stream (Vista+, typically the
 /// 256×256 32-bit entry). 1, 4, 8, 16, 24 and 32 bpp DIBs are produced, matching what
 /// <see cref="IconFileReader"/> can decode, so an icon opened from a file saves back at its original depth.
@@ -95,7 +97,9 @@ public static class IconFileWriter
             _ => BuildDibIndexed(reduced, width, height, storedBpp),
         };
 
-        return new Entry(width, height, storedBpp, reduced.Palette.Length / 4, data);
+        // Indexed entries always ship a full 2^bpp colour table; see BuildDibIndexed.
+        int paletteCount = storedBpp <= 8 ? 1 << storedBpp : 0;
+        return new Entry(width, height, storedBpp, paletteCount, data);
     }
 
     // Vista+ icons embed the complete PNG file as the entry data; readers detect it by its signature.
@@ -195,7 +199,13 @@ public static class IconFileWriter
     private static byte[] BuildDibIndexed(ReducedImage reduced, int width, int height, int bpp)
     {
         byte[] indices = reduced.Indices!;
-        byte[] palette = reduced.Palette;
+
+        // The colour table is padded out to the full 2^bpp entries even when the reduction needed fewer.
+        // biClrUsed says how many are meaningful, but plenty of readers (XnView, WinMerge, …) ignore it and
+        // locate the pixel data at a fixed 40 + (1 << bpp) * 4 bytes, so a short table shifts the whole image.
+        int paletteEntries = 1 << bpp;
+        var palette = new byte[paletteEntries * 4];
+        reduced.Palette.CopyTo(palette, 0);
 
         int colorStride = ((width * bpp) + 31) / 32 * 4;
         int maskStride = AndMaskStride(width);
@@ -203,7 +213,7 @@ public static class IconFileWriter
 
         using var ms = new MemoryStream(40 + palette.Length + (colorStride + maskStride) * height);
         using var w = new BinaryWriter(ms);
-        WriteHeader(w, width, height, bpp, palette.Length / 4);
+        WriteHeader(w, width, height, bpp, paletteEntries);
         w.Write(palette);
 
         var row = new byte[colorStride];
