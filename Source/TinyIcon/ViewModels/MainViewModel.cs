@@ -21,6 +21,7 @@ public partial class MainViewModel : ObservableObject
     public ObservableCollection<SubImageViewModel> SubImages { get; } = [];
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(DeleteSubImageCommand))]
     public partial SubImageViewModel? SelectedSubImage { get; set; }
 
     [ObservableProperty]
@@ -158,6 +159,30 @@ public partial class MainViewModel : ObservableObject
         {
             _dialogs.ShowError($"Could not save icon:\n{ex.Message}");
         }
+    }
+
+    private bool CanDeleteSubImage(SubImageViewModel? item) => (item ?? SelectedSubImage) is not null;
+
+    /// <summary>Removes <paramref name="item"/> (the right-clicked preview), or the selected sub-image when null.</summary>
+    [RelayCommand(CanExecute = nameof(CanDeleteSubImage))]
+    private void DeleteSubImage(SubImageViewModel? item)
+    {
+        var target = item ?? SelectedSubImage;
+        if (target is null)
+            return;
+
+        var index = SubImages.IndexOf(target);
+        if (index < 0)
+            return;
+
+        SubImages.RemoveAt(index);
+
+        // Keep the selection near the removed entry so repeated deletes walk down the list.
+        if (SelectedSubImage == target || SelectedSubImage is null)
+            SelectedSubImage = SubImages.Count > 0 ? SubImages[Math.Min(index, SubImages.Count - 1)] : null;
+
+        ImportImageCommand.NotifyCanExecuteChanged();
+        SaveIconCommand.NotifyCanExecuteChanged();
     }
 
     [RelayCommand]
