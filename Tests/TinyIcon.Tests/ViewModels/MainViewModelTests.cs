@@ -1,4 +1,6 @@
 using System.IO;
+using TinyIcon.Models;
+using TinyIcon.Services;
 using TinyIcon.Tests.TestSupport;
 using TinyIcon.ViewModels;
 
@@ -279,6 +281,214 @@ public class MainViewModelTests
         vm.SaveIconCommand.Execute(null);
 
         Assert.That(dialogs.Errors, Is.Empty);
+    }
+
+    // --- Open Icon ----------------------------------------------------------
+
+    /// <summary>Writes a two-entry icon to a temp file and returns its path.</summary>
+    private static string WriteTempIcon()
+    {
+        string path = Path.Combine(Path.GetTempPath(), $"tinyicon-test-{Guid.NewGuid():N}.ico");
+        IconFileWriter.Write(path,
+        [
+            new IconImage(BitmapTestHelpers.SolidColor(16, 16, 1, 2, 3, 255), 24, IconImageFormat.Bmp),
+            new IconImage(BitmapTestHelpers.SolidColor(32, 32, 4, 5, 6, 255), 32, IconImageFormat.Bmp),
+        ]);
+        return path;
+    }
+
+    [Test]
+    public void OpenIcon_ReplacesSlotsWithTheEntriesOfTheFile()
+    {
+        string path = WriteTempIcon();
+        var dialogs = new FakeDialogService { NewIconResult = [(48, 32)], OpenIconResult = path };
+        var vm = Create(dialogs);
+        vm.NewIconCommand.Execute(null);
+
+        try
+        {
+            vm.OpenIconCommand.Execute(null);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(dialogs.OpenIconCalls, Is.EqualTo(1));
+                Assert.That(dialogs.Errors, Is.Empty);
+                Assert.That(vm.SubImages.Select(s => (s.Width, s.Height, s.Bpp)),
+                    Is.EqualTo([(16, 16, 24), (32, 32, 32)]));
+                Assert.That(vm.SubImages.All(s => s.HasImage), Is.True);
+                Assert.That(vm.SelectedSubImage, Is.SameAs(vm.SubImages[0]));
+                Assert.That(vm.SaveIconCommand.CanExecute(null), Is.True);
+                Assert.That(vm.ImportImageCommand.CanExecute(null), Is.True);
+            });
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Test]
+    public void OpenIcon_ThenSaveIcon_PreservesTheDepthOfEveryEntry()
+    {
+        // The point of the feature: a legacy icon must not be promoted to 24/32 bpp by a round trip
+        // through the app.
+        string source = Path.Combine(Path.GetTempPath(), $"tinyicon-test-{Guid.NewGuid():N}.ico");
+        string saved = Path.Combine(Path.GetTempPath(), $"tinyicon-test-{Guid.NewGuid():N}.ico");
+        IconFileWriter.Write(source,
+        [
+            new IconImage(BitmapTestHelpers.DistinctColors(16, 16, 12), 4, IconImageFormat.Bmp),
+            new IconImage(BitmapTestHelpers.DistinctColors(32, 32, 200), 8, IconImageFormat.Bmp),
+            new IconImage(BitmapTestHelpers.SolidColor(48, 48, 8, 82, 255, 255), 16, IconImageFormat.Bmp),
+        ]);
+
+        var dialogs = new FakeDialogService { OpenIconResult = source, SaveIconResult = saved };
+        var vm = Create(dialogs);
+
+        try
+        {
+            vm.OpenIconCommand.Execute(null);
+            vm.SaveIconCommand.Execute(null);
+
+            var reopened = IconFileReader.Read(saved);
+            Assert.Multiple(() =>
+            {
+                Assert.That(dialogs.Errors, Is.Empty);
+                Assert.That(vm.SubImages.Select(s => s.Bpp), Is.EqualTo([4, 8, 16]), "slots");
+                Assert.That(reopened.Select(i => i.Bpp), Is.EqualTo([4, 8, 16]), "saved file");
+            });
+        }
+        finally
+        {
+            File.Delete(source);
+            File.Delete(saved);
+        }
+    }
+
+    [Test]
+    public void OpenIcon_WhenCancelled_LeavesSlotsUntouched()
+    {
+        var dialogs = new FakeDialogService { NewIconResult = [(16, 32)], OpenIconResult = null };
+        var vm = Create(dialogs);
+        vm.NewIconCommand.Execute(null);
+
+        vm.OpenIconCommand.Execute(null);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(vm.SubImages.Select(s => s.Width), Is.EqualTo([16]));
+            Assert.That(dialogs.Errors, Is.Empty);
+        });
+    }
+
+    [Test]
+    public void OpenIcon_WhenTheFileIsNotAnIcon_ReportsAnErrorAndKeepsTheSlots()
+    {
+        string path = Path.Combine(Path.GetTempPath(), $"tinyicon-test-{Guid.NewGuid():N}.ico");
+        File.WriteAllText(path, "definitely not an icon");
+        var dialogs = new FakeDialogService { NewIconResult = [(16, 32)], OpenIconResult = path };
+        var vm = Create(dialogs);
+        vm.NewIconCommand.Execute(null);
+
+        try
+        {
+            vm.OpenIconCommand.Execute(null);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(dialogs.Errors, Has.Count.EqualTo(1));
+                Assert.That(dialogs.Errors[0], Does.StartWith("Could not open icon:"));
+                Assert.That(vm.SubImages.Select(s => s.Width), Is.EqualTo([16]));
+            });
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    // --- Drop ---------------------------------------------------------------
+
+    [Test]
+    public void Drop_WithAnIconFile_OpensIt()
+    {
+        string path = WriteTempIcon();
+        var vm = Create(new FakeDialogService());
+
+        try
+        {
+            vm.DropCommand.Execute([path]);
+
+            Assert.That(vm.SubImages.Select(s => s.Width), Is.EqualTo([16, 32]));
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Test]
+    public void Drop_WithAnImageFile_ImportsItIntoTheSlots()
+    {
+        string path = BitmapTestHelpers.WriteTempPng(64, 64);
+        var dialogs = new FakeDialogService { NewIconResult = [(16, 32), (32, 32)] };
+        var vm = Create(dialogs);
+        vm.NewIconCommand.Execute(null);
+
+        try
+        {
+            vm.DropCommand.Execute([path]);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(vm.SubImages.All(s => s.HasImage), Is.True);
+                Assert.That(dialogs.OpenImageCalls, Is.EqualTo(0), "no dialog for a dropped file");
+                Assert.That(dialogs.Errors, Is.Empty);
+            });
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Test]
+    public void Drop_WithAnImageFileAndNoSlots_ReportsAnError()
+    {
+        string path = BitmapTestHelpers.WriteTempPng(64, 64);
+        var dialogs = new FakeDialogService();
+        var vm = Create(dialogs);
+
+        try
+        {
+            vm.DropCommand.Execute([path]);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(vm.SubImages, Is.Empty);
+                Assert.That(dialogs.Errors, Has.Count.EqualTo(1));
+            });
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Test]
+    public void Drop_WithNoFiles_DoesNothing()
+    {
+        var dialogs = new FakeDialogService { NewIconResult = [(16, 32)] };
+        var vm = Create(dialogs);
+        vm.NewIconCommand.Execute(null);
+
+        vm.DropCommand.Execute(null);
+        vm.DropCommand.Execute(Array.Empty<string>());
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(vm.SubImages[0].HasImage, Is.False);
+            Assert.That(dialogs.Errors, Is.Empty);
+        });
     }
 
     // --- Zoom ---------------------------------------------------------------

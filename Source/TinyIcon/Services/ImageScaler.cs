@@ -21,58 +21,77 @@ public static class ImageScaler
     /// Scales <paramref name="source"/> to fit a <paramref name="size"/>×<paramref name="size"/> square,
     /// preserving aspect ratio and centering the result with transparent padding.
     /// </summary>
-    public static BitmapSource ScaleTo(BitmapSource source, int size)
+    public static BitmapSource ScaleTo(BitmapSource source, int size) => ScaleToBox(source, size, size);
+
+    /// <summary>
+    /// Scales <paramref name="source"/> to fit a <paramref name="width"/>×<paramref name="height"/> box,
+    /// preserving aspect ratio and centering the result with transparent padding. Icons read from a file
+    /// may have non-square sub-images, so the target box is not assumed to be square.
+    /// </summary>
+    public static BitmapSource ScaleToBox(BitmapSource source, int width, int height)
     {
-        double scale = Math.Min((double)size / source.PixelWidth, (double)size / source.PixelHeight);
+        double scale = Math.Min((double)width / source.PixelWidth, (double)height / source.PixelHeight);
         double w = Math.Round(source.PixelWidth * scale);
         double h = Math.Round(source.PixelHeight * scale);
-        double x = Math.Round((size - w) / 2);
-        double y = Math.Round((size - h) / 2);
+        double x = Math.Round((width - w) / 2);
+        double y = Math.Round((height - h) / 2);
 
         var visual = new DrawingVisual();
         RenderOptions.SetBitmapScalingMode(visual, BitmapScalingMode.HighQuality);
         using (var dc = visual.RenderOpen())
         {
-            // force a quadratic canvas to avoid any potential issues with non-square images
-            dc.PushClip(new RectangleGeometry(new Rect(0, 0, size, size)));
+            // clip to the target box so nothing bleeds outside it
+            dc.PushClip(new RectangleGeometry(new Rect(0, 0, width, height)));
             // scale the source for smoother results instead of scaling the target rectangle (which can produce aliasing artifacts)
             dc.DrawImage(new TransformedBitmap(source, new ScaleTransform(scale, scale)), new Rect(x, y, w, h));
         }
 
-        var target = new RenderTargetBitmap(size, size, 96, 96, PixelFormats.Pbgra32);
+        var target = new RenderTargetBitmap(width, height, 96, 96, PixelFormats.Pbgra32);
         target.Render(visual);
         target.Freeze();
         return target;
     }
 
     /// <summary>
-    /// Scales like <see cref="ScaleTo(BitmapSource, int)"/> and, for 24 bpp targets, additionally applies
-    /// <see cref="ApplyBinaryTransparency"/> so the result previews exactly as it will be saved.
+    /// Scales like <see cref="ScaleTo(BitmapSource, int)"/> and, for every target below 32 bpp, additionally
+    /// applies <see cref="ApplyBinaryTransparency"/> — those entries carry transparency in the 1-bit AND mask
+    /// — and, at 16 bpp and below, the colour reduction that depth forces. The result therefore previews
+    /// exactly as it will be saved.
     /// </summary>
-    public static BitmapSource ScaleTo(BitmapSource source, int size, int bpp)
+    public static BitmapSource ScaleTo(BitmapSource source, int size, int bpp) =>
+        ScaleToBox(source, size, size, bpp);
+
+    /// <summary>Non-square counterpart of <see cref="ScaleTo(BitmapSource, int, int)"/>.</summary>
+    public static BitmapSource ScaleToBox(BitmapSource source, int width, int height, int bpp)
     {
-        var scaled = ScaleTo(source, size);
-        return bpp == 24 ? ApplyBinaryTransparency(scaled) : scaled;
+        var scaled = ScaleToBox(source, width, height);
+        if (bpp == 32)
+            return scaled;
+
+        var pixels = CopyBgra(scaled);
+        ApplyBinaryTransparency(pixels);
+
+        // 24 bpp holds every colour; 16 bpp and the palettized depths do not, and the user should see that.
+        if (bpp < 24)
+            ColorReducer.Reduce(pixels, width, height, bpp);
+
+        return FromBgra(pixels, width, height);
     }
 
     /// <summary>
-    /// Simulates the visual effect of a 24 bpp icon entry with a 1-bit AND mask:
+    /// Simulates the visual effect of an icon entry below 32 bpp with a 1-bit AND mask:
     /// pixels with alpha below 128 become fully transparent, all others become fully opaque.
     /// This lets the preview match the final <c>.ico</c> output.
     /// </summary>
     public static BitmapSource ApplyBinaryTransparency(BitmapSource source)
     {
-        // Work in non-premultiplied BGRA so alpha thresholding is straightforward.
-        BitmapSource bgra = source.Format == PixelFormats.Bgra32
-            ? source
-            : new FormatConvertedBitmap(source, PixelFormats.Bgra32, null, 0);
+        var pixels = CopyBgra(source);
+        ApplyBinaryTransparency(pixels);
+        return FromBgra(pixels, source.PixelWidth, source.PixelHeight);
+    }
 
-        int width = bgra.PixelWidth;
-        int height = bgra.PixelHeight;
-        int stride = width * 4;
-        var pixels = new byte[stride * height];
-        bgra.CopyPixels(pixels, stride, 0);
-
+    private static void ApplyBinaryTransparency(byte[] pixels)
+    {
         for (int i = 3; i < pixels.Length; i += 4) // walk alpha bytes
         {
             if (pixels[i] < IconFileWriter.OpaqueAlphaThreshold)
@@ -88,9 +107,26 @@ public static class ImageScaler
                 pixels[i] = 255; // Fully opaque
             }
         }
+    }
 
+    /// <summary>Copies <paramref name="source"/> into straight (non-premultiplied) BGRA bytes, top-down.</summary>
+    private static byte[] CopyBgra(BitmapSource source)
+    {
+        // Work in non-premultiplied BGRA so alpha thresholding is straightforward.
+        BitmapSource bgra = source.Format == PixelFormats.Bgra32
+            ? source
+            : new FormatConvertedBitmap(source, PixelFormats.Bgra32, null, 0);
+
+        int stride = bgra.PixelWidth * 4;
+        var pixels = new byte[stride * bgra.PixelHeight];
+        bgra.CopyPixels(pixels, stride, 0);
+        return pixels;
+    }
+
+    private static BitmapSource FromBgra(byte[] pixels, int width, int height)
+    {
         var result = BitmapSource.Create(width, height, 96, 96,
-            PixelFormats.Bgra32, null, pixels, stride);
+            PixelFormats.Bgra32, null, pixels, width * 4);
         result.Freeze();
         return result;
     }

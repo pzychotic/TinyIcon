@@ -9,6 +9,9 @@ public interface IDialogService
     /// <summary>Shows an open-file dialog for images; returns the selected path, or null if cancelled.</summary>
     string? OpenImageFile();
 
+    /// <summary>Shows an open-file dialog for an .ico file; returns the selected path, or null if cancelled.</summary>
+    string? OpenIconFile();
+
     /// <summary>Shows a save-file dialog for an .ico file; returns the selected path, or null if cancelled.</summary>
     string? SaveIconFile();
 

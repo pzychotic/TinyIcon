@@ -14,6 +14,7 @@
     <!-- The gestures shown via InputGestureText in the menu below. -->
     <Window.InputBindings>
         <KeyBinding Modifiers="Control" Key="N" Command="{Binding NewIconCommand}" />
+        <KeyBinding Modifiers="Control" Key="O" Command="{Binding OpenIconCommand}" />
         <KeyBinding Modifiers="Control" Key="I" Command="{Binding ImportImageCommand}" />
         <KeyBinding Modifiers="Control" Key="S" Command="{Binding SaveIconCommand}" />
         <KeyBinding Modifiers="Control" Key="Add" Command="{Binding ZoomInCommand}" />
@@ -48,12 +49,22 @@
     </Window.Resources>
 
     <DockPanel>
+        <!-- Dropping a file anywhere in the window: an .ico is opened, any other image is imported. -->
+        <b:Interaction.Behaviors>
+            <beh:DropBehavior Command="{Binding DropCommand}" />
+        </b:Interaction.Behaviors>
+
         <!-- Menu -->
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
                 <MenuItem Header="_New Icon…" Command="{Binding NewIconCommand}" InputGestureText="Ctrl+N">
                     <MenuItem.Icon>
                         <Image Source="/Resources/NewIcon.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="_Open Icon…" Command="{Binding OpenIconCommand}" InputGestureText="Ctrl+O">
+                    <MenuItem.Icon>
+                        <Image Source="/Resources/OpenIcon.png" />
                     </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="_Import Image…" Command="{Binding ImportImageCommand}" InputGestureText="Ctrl+I">
@@ -99,6 +110,10 @@
                 <Button Command="{Binding NewIconCommand}" ToolTip="New Icon (Ctrl+N)"
                         AutomationProperties.Name="New Icon">
                     <Image Source="/Resources/NewIcon.png" />
+                </Button>
+                <Button Command="{Binding OpenIconCommand}" ToolTip="Open Icon (Ctrl+O)"
+                        AutomationProperties.Name="Open Icon">
+                    <Image Source="/Resources/OpenIcon.png" />
                 </Button>
                 <Button Command="{Binding ImportImageCommand}" ToolTip="Import Image (Ctrl+I)"
                         AutomationProperties.Name="Import Image">
@@ -193,7 +208,7 @@
 
                 <TextBlock Foreground="#FFDDDDDD" HorizontalAlignment="Center" VerticalAlignment="Center"
                            TextAlignment="Center" TextWrapping="Wrap" MaxWidth="300"
-                           Text="Create a new icon (File ▸ New Icon…), then import an image (File ▸ Import Image…) to preview it here.">
+                           Text="Create a new icon (File ▸ New Icon…) and import an image (File ▸ Import Image…), or open an existing icon (File ▸ Open Icon…). You can also drop a file on this window.">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">
                             <Setter Property="Visibility" Value="Collapsed" />

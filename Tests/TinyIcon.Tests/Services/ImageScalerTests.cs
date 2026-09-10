@@ -111,4 +111,45 @@ public class ImageScalerTests
             Assert.That(alphaPixel[3], Is.Not.Zero, "32 bpp: centre pixel should keep partial alpha");
         });
     }
+
+    [TestCase(1, 2)]
+    [TestCase(4, 16)]
+    [TestCase(8, 256)]
+    public void ScaleTo_BelowTrueColour_QuantizesThePreviewToTheDepthsBudget(int bpp, int maxColors)
+    {
+        // The preview is what the user judges the import by, so it has to show the colour loss the depth
+        // forces rather than a full-colour image that changes the moment it is saved.
+        var source = BitmapTestHelpers.DistinctColors(64, 64, 500);
+
+        var scaled = ImageScaler.ScaleTo(source, 64, bpp);
+
+        Assert.That(DistinctColors(scaled), Has.Count.LessThanOrEqualTo(maxColors));
+    }
+
+    [Test]
+    public void ScaleTo_With16Bpp_SnapsThePreviewToFiveBitsPerChannel()
+    {
+        var source = BitmapTestHelpers.DistinctColors(32, 32, 500);
+
+        var scaled = ImageScaler.ScaleTo(source, 32, bpp: 16);
+
+        var pixels = new byte[32 * 32 * 4];
+        scaled.CopyPixels(pixels, 32 * 4, 0);
+        Assert.That(pixels.Where((_, i) => i % 4 != 3),
+            Is.All.Matches<byte>(c => c == (byte)(((c >> 3) << 3) | ((c >> 3) >> 2))));
+    }
+
+    private static HashSet<uint> DistinctColors(System.Windows.Media.Imaging.BitmapSource bitmap)
+    {
+        var pixels = new byte[bitmap.PixelWidth * bitmap.PixelHeight * 4];
+        bitmap.CopyPixels(pixels, bitmap.PixelWidth * 4, 0);
+
+        var colors = new HashSet<uint>();
+        for (int i = 0; i < pixels.Length; i += 4)
+        {
+            if (pixels[i + 3] != 0)
+                colors.Add((uint)(pixels[i] | (pixels[i + 1] << 8) | (pixels[i + 2] << 16)));
+        }
+        return colors;
+    }
 }

@@ -7,10 +7,12 @@ internal sealed class FakeDialogService : IDialogService
 {
     public IReadOnlyList<(int Size, int Bpp)>? NewIconResult { get; set; }
     public string? OpenImageResult { get; set; }
+    public string? OpenIconResult { get; set; }
     public string? SaveIconResult { get; set; }
 
     public int NewIconCalls { get; private set; }
     public int OpenImageCalls { get; private set; }
+    public int OpenIconCalls { get; private set; }
     public int SaveIconCalls { get; private set; }
     public List<string> Errors { get; } = [];
 
@@ -24,6 +26,12 @@ internal sealed class FakeDialogService : IDialogService
     {
         OpenImageCalls++;
         return OpenImageResult;
+    }
+
+    public string? OpenIconFile()
+    {
+        OpenIconCalls++;
+        return OpenIconResult;
     }
 
     public string? SaveIconFile()
