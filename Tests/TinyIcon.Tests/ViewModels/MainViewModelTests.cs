@@ -491,6 +491,104 @@ public class MainViewModelTests
         });
     }
 
+    // --- Delete Sub-Image --------------------------------------------------
+
+    /// <summary>A view model with one empty 32-bit slot per size, the first one selected.</summary>
+    private static MainViewModel CreateWithSlots(params int[] sizes)
+    {
+        var vm = Create(new FakeDialogService { NewIconResult = sizes.Select(s => (s, 32)).ToList() });
+        vm.NewIconCommand.Execute(null);
+        return vm;
+    }
+
+    [Test]
+    public void DeleteSubImage_WithItem_RemovesThatItem()
+    {
+        var vm = CreateWithSlots(16, 32, 48);
+
+        vm.DeleteSubImageCommand.Execute(vm.SubImages[1]);
+
+        Assert.That(vm.SubImages.Select(s => s.Width), Is.EqualTo([16, 48]));
+    }
+
+    [Test]
+    public void DeleteSubImage_SelectedMiddleItem_SelectsTheNextOne()
+    {
+        var vm = CreateWithSlots(16, 32, 48);
+        vm.SelectedSubImage = vm.SubImages[1];
+
+        vm.DeleteSubImageCommand.Execute(vm.SubImages[1]);
+
+        Assert.That(vm.SelectedSubImage?.Width, Is.EqualTo(48));
+    }
+
+    [Test]
+    public void DeleteSubImage_SelectedLastItem_SelectsThePreviousOne()
+    {
+        var vm = CreateWithSlots(16, 32, 48);
+        vm.SelectedSubImage = vm.SubImages[2];
+
+        vm.DeleteSubImageCommand.Execute(vm.SubImages[2]);
+
+        Assert.That(vm.SelectedSubImage?.Width, Is.EqualTo(32));
+    }
+
+    [Test]
+    public void DeleteSubImage_UnselectedItem_KeepsTheSelection()
+    {
+        var vm = CreateWithSlots(16, 32, 48);
+        var selected = vm.SubImages[0];
+
+        vm.DeleteSubImageCommand.Execute(vm.SubImages[2]);
+
+        Assert.That(vm.SelectedSubImage, Is.SameAs(selected));
+    }
+
+    [Test]
+    public void DeleteSubImage_WithoutItem_RemovesTheSelectedOne()
+    {
+        var vm = CreateWithSlots(16, 32, 48);
+        vm.SelectedSubImage = vm.SubImages[1];
+
+        vm.DeleteSubImageCommand.Execute(null);
+
+        Assert.That(vm.SubImages.Select(s => s.Width), Is.EqualTo([16, 48]));
+    }
+
+    [Test]
+    public void DeleteSubImage_OnlyItem_LeavesAnEmptyIcon()
+    {
+        var vm = CreateWithSlots(16);
+
+        vm.DeleteSubImageCommand.Execute(vm.SubImages[0]);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(vm.SubImages, Is.Empty);
+            Assert.That(vm.SelectedSubImage, Is.Null);
+            Assert.That(vm.ImportImageCommand.CanExecute(null), Is.False);
+            Assert.That(vm.SaveIconCommand.CanExecute(null), Is.False);
+            Assert.That(vm.DeleteSubImageCommand.CanExecute(null), Is.False);
+        });
+    }
+
+    [Test]
+    public void DeleteSubImage_CanExecuteWithoutItem_FollowsTheSelection()
+    {
+        var vm = CreateWithSlots(16, 32);
+        var canExecuteChanged = 0;
+        vm.DeleteSubImageCommand.CanExecuteChanged += (_, _) => canExecuteChanged++;
+
+        vm.SelectedSubImage = null;
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(vm.DeleteSubImageCommand.CanExecute(null), Is.False);
+            Assert.That(vm.DeleteSubImageCommand.CanExecute(vm.SubImages[0]), Is.True);
+            Assert.That(canExecuteChanged, Is.GreaterThan(0));
+        });
+    }
+
     // --- Zoom ---------------------------------------------------------------
 
     [Test]

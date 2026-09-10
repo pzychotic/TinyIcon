@@ -22,6 +22,8 @@
         <KeyBinding Modifiers="Control" Key="Subtract" Command="{Binding ZoomOutCommand}" />
         <KeyBinding Modifiers="Control" Key="OemMinus" Command="{Binding ZoomOutCommand}" />
         <KeyBinding Modifiers="Control" Key="Multiply" Command="{Binding ZoomResetCommand}" />
+        <!-- No parameter: deletes the selected sub-image. -->
+        <KeyBinding Key="Delete" Command="{Binding DeleteSubImageCommand}" />
     </Window.InputBindings>
 
     <Window.Resources>
@@ -156,6 +158,23 @@
                      HorizontalContentAlignment="Stretch"
                      ScrollViewer.HorizontalScrollBarVisibility="Auto"
                      ScrollViewer.VerticalScrollBarVisibility="Auto">
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <!-- A ContextMenu lives outside the visual tree, so it reaches the main view model
+                             through its PlacementTarget's Tag. -->
+                        <Setter Property="Tag"
+                                Value="{Binding DataContext, RelativeSource={RelativeSource AncestorType=ListBox}}" />
+                        <Setter Property="ContextMenu">
+                            <Setter.Value>
+                                <ContextMenu>
+                                    <MenuItem Header="_Delete" InputGestureText="Del"
+                                              Command="{Binding PlacementTarget.Tag.DeleteSubImageCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                              CommandParameter="{Binding}" />
+                                </ContextMenu>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ListBox.ItemContainerStyle>
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Margin="4,6">
