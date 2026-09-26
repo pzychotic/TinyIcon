@@ -22,6 +22,20 @@ internal sealed class FakeDialogService : IDialogService
         return NewIconResult;
     }
 
+    public IReadOnlyList<(int Size, int Bpp)>? AddSubImagesResult { get; set; }
+
+    /// <summary>The existing entries passed to the last <see cref="ShowAddSubImagesDialog"/> call.</summary>
+    public IReadOnlyCollection<(int Size, int Bpp)>? LastExisting { get; private set; }
+
+    public int AddSubImagesCalls { get; private set; }
+
+    public IReadOnlyList<(int Size, int Bpp)>? ShowAddSubImagesDialog(IReadOnlyCollection<(int Size, int Bpp)> existing)
+    {
+        AddSubImagesCalls++;
+        LastExisting = existing;
+        return AddSubImagesResult;
+    }
+
     public string? OpenImageFile()
     {
         OpenImageCalls++;

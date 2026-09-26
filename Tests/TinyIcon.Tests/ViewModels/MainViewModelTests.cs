@@ -589,6 +589,183 @@ public class MainViewModelTests
         });
     }
 
+    // --- Add Sub-Images ----------------------------------------------------
+
+    /// <summary>A view model whose slots are the given specs, each filled with a solid bitmap of its size.</summary>
+    private static (MainViewModel Vm, FakeDialogService Dialogs) CreateWithImages(params (int Size, int Bpp)[] specs)
+    {
+        var dialogs = new FakeDialogService { NewIconResult = specs };
+        var vm = Create(dialogs);
+        vm.NewIconCommand.Execute(null);
+        foreach (var slot in vm.SubImages)
+            slot.Bitmap = BitmapTestHelpers.SolidColor(slot.Width, slot.Height, 10, 20, 30, 255);
+        return (vm, dialogs);
+    }
+
+    [Test]
+    public void AddSubImages_CanExecute_OnlyWithAnOpenIcon()
+    {
+        var vm = Create(new FakeDialogService());
+
+        Assert.That(vm.AddSubImagesCommand.CanExecute(null), Is.False);
+
+        var withSlots = CreateWithSlots(16);
+
+        Assert.That(withSlots.AddSubImagesCommand.CanExecute(null), Is.True);
+    }
+
+    [Test]
+    public void AddSubImages_PassesTheExistingEntriesToTheDialog()
+    {
+        var (vm, dialogs) = CreateWithImages((16, 8), (32, 32));
+
+        vm.AddSubImagesCommand.Execute(null);
+
+        Assert.That(dialogs.LastExisting, Is.EquivalentTo([(16, 8), (32, 32)]));
+    }
+
+    [Test]
+    public void AddSubImages_WhenCancelled_LeavesSlotsUntouched()
+    {
+        var (vm, dialogs) = CreateWithImages((16, 32));
+        dialogs.AddSubImagesResult = null;
+
+        vm.AddSubImagesCommand.Execute(null);
+
+        Assert.That(vm.SubImages, Has.Count.EqualTo(1));
+    }
+
+    [Test]
+    public void AddSubImages_InsertsByDepthThenSizeAndSelectsTheFirstNewOne()
+    {
+        var (vm, dialogs) = CreateWithImages((16, 24), (16, 32), (256, 32));
+        dialogs.AddSubImagesResult = [(32, 8), (48, 24), (32, 32)];
+
+        vm.AddSubImagesCommand.Execute(null);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                vm.SubImages.Select(s => (s.Width, s.Bpp)),
+                Is.EqualTo([(32, 8), (16, 24), (48, 24), (16, 32), (32, 32), (256, 32)]));
+            Assert.That(vm.SelectedSubImage, Is.SameAs(vm.SubImages[0]));
+        });
+    }
+
+    [Test]
+    public void AddSubImages_KeepsTheOrderOfTheExistingEntries()
+    {
+        // As read from a file: not sorted by depth then size.
+        var (vm, dialogs) = CreateWithImages((256, 32), (16, 32));
+        dialogs.AddSubImagesResult = [(48, 24)];
+
+        vm.AddSubImagesCommand.Execute(null);
+
+        Assert.That(vm.SubImages.Select(s => s.Width), Is.EqualTo([48, 256, 16]));
+    }
+
+    [Test]
+    public void AddSubImages_ScalesTheNewSlotsFromTheLargestExistingImage()
+    {
+        var (vm, dialogs) = CreateWithImages((16, 32), (48, 32));
+        vm.SubImages[1].Bitmap = BitmapTestHelpers.SolidColor(48, 48, 200, 100, 50, 255);
+        dialogs.AddSubImagesResult = [(32, 32)];
+
+        vm.AddSubImagesCommand.Execute(null);
+
+        var added = vm.SubImages.Single(s => s.Width == 32);
+        Assert.Multiple(() =>
+        {
+            Assert.That(added.Bitmap!.PixelWidth, Is.EqualTo(32));
+            Assert.That(BitmapTestHelpers.PixelAt(added.Bitmap, 16, 16), Is.EqualTo((200, 100, 50, 255)));
+        });
+    }
+
+    [Test]
+    public void AddSubImages_PrefersTheHigherDepthWhenSizesTie()
+    {
+        var (vm, dialogs) = CreateWithImages((48, 24), (48, 32));
+        vm.SubImages[0].Bitmap = BitmapTestHelpers.SolidColor(48, 48, 1, 2, 3, 255);
+        vm.SubImages[1].Bitmap = BitmapTestHelpers.SolidColor(48, 48, 200, 100, 50, 255);
+        dialogs.AddSubImagesResult = [(16, 32)];
+
+        vm.AddSubImagesCommand.Execute(null);
+
+        var added = vm.SubImages.Single(s => s.Width == 16);
+        Assert.That(BitmapTestHelpers.PixelAt(added.Bitmap!, 8, 8), Is.EqualTo((200, 100, 50, 255)));
+    }
+
+    [Test]
+    public void AddSubImages_UpscalesWhenTheNewSizeIsLargerThanEveryImage()
+    {
+        var (vm, dialogs) = CreateWithImages((16, 32));
+        dialogs.AddSubImagesResult = [(64, 32)];
+
+        vm.AddSubImagesCommand.Execute(null);
+
+        Assert.That(vm.SubImages.Single(s => s.Width == 64).Bitmap!.PixelWidth, Is.EqualTo(64));
+    }
+
+    [Test]
+    public void AddSubImages_AppliesTheNewSlotsColourDepth()
+    {
+        // A half-transparent 32-bit source must come out with binary transparency at 8 bpp.
+        var (vm, dialogs) = CreateWithImages((32, 32));
+        vm.SubImages[0].Bitmap = BitmapTestHelpers.HalfTransparent(32, 32);
+        dialogs.AddSubImagesResult = [(32, 8)];
+
+        vm.AddSubImagesCommand.Execute(null);
+
+        var added = vm.SubImages.Single(s => s.Bpp == 8);
+        Assert.Multiple(() =>
+        {
+            Assert.That(BitmapTestHelpers.PixelAt(added.Bitmap!, 4, 4).A, Is.EqualTo(255));
+            Assert.That(BitmapTestHelpers.PixelAt(added.Bitmap!, 28, 4).A, Is.EqualTo(0));
+        });
+    }
+
+    [Test]
+    public void AddSubImages_WithoutAnyImage_AddsEmptySlots()
+    {
+        var dialogs = new FakeDialogService { NewIconResult = [(16, 32)], AddSubImagesResult = [(32, 32)] };
+        var vm = Create(dialogs);
+        vm.NewIconCommand.Execute(null);
+
+        vm.AddSubImagesCommand.Execute(null);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(vm.SubImages.Select(s => s.Width), Is.EqualTo([16, 32]));
+            Assert.That(vm.SubImages.All(s => !s.HasImage), Is.True);
+            Assert.That(vm.SaveIconCommand.CanExecute(null), Is.False);
+        });
+    }
+
+    [Test]
+    public void AddSubImages_ToAnIconWithImages_FillsEveryNewSlot()
+    {
+        var (vm, dialogs) = CreateWithImages((16, 32));
+        dialogs.AddSubImagesResult = [(32, 32)];
+
+        vm.AddSubImagesCommand.Execute(null);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(vm.SubImages.All(s => s.HasImage), Is.True);
+            Assert.That(vm.SaveIconCommand.CanExecute(null), Is.True);
+        });
+    }
+
+    [Test]
+    public void DeleteSubImage_OnlyItem_DisablesAddSubImages()
+    {
+        var vm = CreateWithSlots(16);
+
+        vm.DeleteSubImageCommand.Execute(vm.SubImages[0]);
+
+        Assert.That(vm.AddSubImagesCommand.CanExecute(null), Is.False);
+    }
+
     // --- Zoom ---------------------------------------------------------------
 
     [Test]

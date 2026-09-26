@@ -48,4 +48,29 @@ public class ResolutionOptionViewModelTests
 
         Assert.That(raised, Is.Zero);
     }
+
+    [Test]
+    public void Constructor_IsNotExistingByDefault()
+    {
+        var option = new ResolutionOptionViewModel(32, isSelected: true);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(option.IsExisting, Is.False);
+            Assert.That(option.ToolTip, Is.Null);
+        });
+    }
+
+    [Test]
+    public void Constructor_ExistingEntryIsAlwaysSelected()
+    {
+        var option = new ResolutionOptionViewModel(32, isSelected: false, isExisting: true);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(option.IsExisting, Is.True);
+            Assert.That(option.IsSelected, Is.True);
+            Assert.That(option.ToolTip, Is.Not.Null);
+        });
+    }
 }

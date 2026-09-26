@@ -11,21 +11,48 @@ public sealed class WpfDialogService(Window owner, AppSettings settings) : IDial
 {
     public IReadOnlyList<(int Size, int Bpp)>? ShowNewIconDialog()
     {
-        var viewModel = new NewIconViewModel(
-            settings.Bpp24Sizes ?? IconResolutions.DefaultChecked,
-            settings.Bpp32Sizes ?? IconResolutions.DefaultChecked,
-            settings.Bpp24Enabled ?? false,
-            settings.Bpp32Enabled ?? true);
-        var dialog = new NewIconDialog { DataContext = viewModel, Owner = owner };
-        if (dialog.ShowDialog() != true)
+        var viewModel = SubImagePickerViewModel.ForNewIcon(RememberedSizes, RememberedEnabledDepths());
+        if (!ShowPicker(viewModel))
             return null;
 
         // Remember the confirmed selection as the default for the next New Icon dialog.
-        settings.Bpp24Sizes = [.. viewModel.Bpp24.Where(o => o.IsSelected).Select(o => o.Size)];
-        settings.Bpp32Sizes = [.. viewModel.Bpp32.Where(o => o.IsSelected).Select(o => o.Size)];
-        settings.Bpp24Enabled = viewModel.Bpp24Enabled;
-        settings.Bpp32Enabled = viewModel.Bpp32Enabled;
+        settings.DepthSizes = viewModel.Columns.ToDictionary(c => c.Bpp, c => c.CheckedSizes);
+        settings.EnabledDepths = [.. viewModel.Columns.Where(c => c.IsEnabled).Select(c => c.Bpp)];
+        settings.Bpp24Sizes = settings.Bpp32Sizes = null;
+        settings.Bpp24Enabled = settings.Bpp32Enabled = null;
         return viewModel.BuildSpecs();
+    }
+
+    public IReadOnlyList<(int Size, int Bpp)>? ShowAddSubImagesDialog(IReadOnlyCollection<(int Size, int Bpp)> existing)
+    {
+        var viewModel = SubImagePickerViewModel.ForAddSubImages(existing);
+        return ShowPicker(viewModel) ? viewModel.BuildSpecs() : null;
+    }
+
+    private bool ShowPicker(SubImagePickerViewModel viewModel) =>
+        new SubImagePickerDialog { DataContext = viewModel, Owner = owner }.ShowDialog() == true;
+
+    private IReadOnlyCollection<int> RememberedSizes(int bpp)
+    {
+        if (settings.DepthSizes is { } sizes)
+            return sizes.GetValueOrDefault(bpp) ?? IconResolutions.DefaultChecked;
+
+        var legacy = bpp switch { 24 => settings.Bpp24Sizes, 32 => settings.Bpp32Sizes, _ => null };
+        return legacy ?? IconResolutions.DefaultChecked;
+    }
+
+    private int[] RememberedEnabledDepths()
+    {
+        if (settings.EnabledDepths is { } depths)
+            return depths;
+
+        // Legacy defaults were 24-bit off, 32-bit on — the same as IconColorDepths.DefaultEnabled.
+        var legacy = new List<int>();
+        if (settings.Bpp24Enabled ?? false)
+            legacy.Add(24);
+        if (settings.Bpp32Enabled ?? true)
+            legacy.Add(32);
+        return [.. legacy];
     }
 
     public string? OpenImageFile()

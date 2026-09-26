@@ -60,6 +60,27 @@ public class JsonSettingsServiceTests
     }
 
     [Test]
+    public void SaveThenLoad_RoundTripsThePerDepthSelection()
+    {
+        var service = new JsonSettingsService(_directory);
+        var settings = new AppSettings
+        {
+            DepthSizes = new() { [4] = [16, 32], [32] = [256] },
+            EnabledDepths = [4, 32],
+        };
+
+        service.Save(settings);
+        var loaded = service.Load();
+
+        Assert.That(loaded, Is.Not.Null);
+        Assert.Multiple(() =>
+        {
+            Assert.That(loaded!.DepthSizes, Is.EquivalentTo(settings.DepthSizes));
+            Assert.That(loaded.EnabledDepths, Is.EqualTo([4, 32]));
+        });
+    }
+
+    [Test]
     public void Load_LeavesTheEnabledFlagsNullWhenTheFilePredatesThem()
     {
         Directory.CreateDirectory(_directory);
