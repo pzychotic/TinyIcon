@@ -12,15 +12,24 @@ public sealed class AppSettings
     public double? WindowHeight { get; set; }
     public bool WindowMaximized { get; set; }
 
-    /// <summary>Sizes last checked in the 24-bpp column of the New Icon dialog.</summary>
+    /// <summary>Sizes last checked per colour depth (bpp) in the New Icon dialog.</summary>
+    public Dictionary<int, int[]>? DepthSizes { get; set; }
+
+    /// <summary>Colour depths (bpp) last enabled in the New Icon dialog (default: 32-bit only).</summary>
+    public int[]? EnabledDepths { get; set; }
+
+    // Legacy New Icon selection from before the dialog offered every depth. Only read as a fallback for
+    // DepthSizes/EnabledDepths, and cleared the next time the dialog is confirmed.
+
+    /// <summary>Legacy: sizes last checked in the 24-bpp column.</summary>
     public int[]? Bpp24Sizes { get; set; }
 
-    /// <summary>Sizes last checked in the 32-bpp column of the New Icon dialog.</summary>
+    /// <summary>Legacy: sizes last checked in the 32-bpp column.</summary>
     public int[]? Bpp32Sizes { get; set; }
 
-    /// <summary>Whether the 24-bpp column of the New Icon dialog was last enabled (default: off).</summary>
+    /// <summary>Legacy: whether the 24-bpp column was last enabled.</summary>
     public bool? Bpp24Enabled { get; set; }
 
-    /// <summary>Whether the 32-bpp column of the New Icon dialog was last enabled (default: on).</summary>
+    /// <summary>Legacy: whether the 32-bpp column was last enabled.</summary>
     public bool? Bpp32Enabled { get; set; }
 }

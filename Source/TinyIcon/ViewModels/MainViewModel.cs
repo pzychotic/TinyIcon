@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Windows.Media.Imaging;
 using TinyIcon.Models;
 using TinyIcon.Services;
 
@@ -44,6 +45,7 @@ public partial class MainViewModel : ObservableObject
 
         SelectedSubImage = SubImages.FirstOrDefault();
         ImportImageCommand.NotifyCanExecuteChanged();
+        AddSubImagesCommand.NotifyCanExecuteChanged();
         SaveIconCommand.NotifyCanExecuteChanged();
     }
 
@@ -117,6 +119,7 @@ public partial class MainViewModel : ObservableObject
 
         SelectedSubImage = SubImages.FirstOrDefault();
         ImportImageCommand.NotifyCanExecuteChanged();
+        AddSubImagesCommand.NotifyCanExecuteChanged();
         SaveIconCommand.NotifyCanExecuteChanged();
     }
 
@@ -161,6 +164,66 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// Adds the sub-images chosen in the Add Sub-Images dialog. Each new slot is scaled from the best existing
+    /// bitmap (see <see cref="BestSourceBitmap"/>), or left empty when there is none yet, and inserted in
+    /// colour-depth-then-size order. The first new slot is selected.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(HasSlots))]
+    private void AddSubImages()
+    {
+        var existing = SubImages.Where(s => s.Width == s.Height).Select(s => (s.Width, s.Bpp)).ToList();
+        var specs = _dialogs.ShowAddSubImagesDialog(existing);
+        if (specs is null || specs.Count == 0)
+            return;
+
+        List<SubImageViewModel> added;
+        try
+        {
+            // Scale everything first so a failure never leaves only some of the new slots behind.
+            var source = BestSourceBitmap();
+            added =
+            [
+                .. specs.Select(spec => new SubImageViewModel(spec.Size, spec.Size, spec.Bpp)
+                {
+                    Bitmap = source is null ? null : ImageScaler.ScaleToBox(source, spec.Size, spec.Size, spec.Bpp),
+                }),
+            ];
+        }
+        catch (Exception ex)
+        {
+            _dialogs.ShowError($"Could not add sub-images:\n{ex.Message}");
+            return;
+        }
+
+        foreach (var slot in added)
+            SubImages.Insert(InsertionIndex(slot), slot);
+
+        SelectedSubImage = added[0];
+        SaveIconCommand.NotifyCanExecuteChanged();
+    }
+
+    /// <summary>The largest existing bitmap, preferring the higher colour depth when sizes tie.</summary>
+    private BitmapSource? BestSourceBitmap() =>
+        SubImages
+            .Where(s => s.Bitmap is not null)
+            .OrderByDescending(s => s.Width * s.Height)
+            .ThenByDescending(s => s.Bpp)
+            .FirstOrDefault()?.Bitmap;
+
+    /// <summary>Before the first slot that sorts after <paramref name="slot"/> by colour depth, then size.</summary>
+    private int InsertionIndex(SubImageViewModel slot)
+    {
+        for (int i = 0; i < SubImages.Count; i++)
+        {
+            var other = SubImages[i];
+            if ((other.Bpp, other.Width, other.Height).CompareTo((slot.Bpp, slot.Width, slot.Height)) > 0)
+                return i;
+        }
+
+        return SubImages.Count;
+    }
+
     private bool CanDeleteSubImage(SubImageViewModel? item) => (item ?? SelectedSubImage) is not null;
 
     /// <summary>Removes <paramref name="item"/> (the right-clicked preview), or the selected sub-image when null.</summary>
@@ -182,6 +245,7 @@ public partial class MainViewModel : ObservableObject
             SelectedSubImage = SubImages.Count > 0 ? SubImages[Math.Min(index, SubImages.Count - 1)] : null;
 
         ImportImageCommand.NotifyCanExecuteChanged();
+        AddSubImagesCommand.NotifyCanExecuteChanged();
         SaveIconCommand.NotifyCanExecuteChanged();
     }
 

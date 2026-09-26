@@ -70,6 +70,15 @@ internal static class BitmapTestHelpers
         return bitmap;
     }
 
+    /// <summary>Reads one pixel as straight (non-premultiplied) BGRA, whatever the bitmap's format.</summary>
+    public static (int B, int G, int R, int A) PixelAt(BitmapSource bitmap, int x, int y)
+    {
+        var bgra = new FormatConvertedBitmap(bitmap, PixelFormats.Bgra32, null, 0);
+        var pixel = new byte[4];
+        bgra.CopyPixels(new System.Windows.Int32Rect(x, y, 1, 1), pixel, 4, 0);
+        return (pixel[0], pixel[1], pixel[2], pixel[3]);
+    }
+
     /// <summary>Writes a solid-colour PNG to a temp file and returns its path.</summary>
     public static string WriteTempPng(int width, int height, byte b = 10, byte g = 20, byte r = 30, byte a = 255)
     {

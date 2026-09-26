@@ -6,6 +6,12 @@ public interface IDialogService
     /// <summary>Shows the New Icon dialog; returns the chosen (size, bpp) specs, or null if cancelled.</summary>
     IReadOnlyList<(int Size, int Bpp)>? ShowNewIconDialog();
 
+    /// <summary>
+    /// Shows the Add Sub-Images dialog with the <paramref name="existing"/> entries locked; returns the chosen
+    /// new (size, bpp) specs, or null if cancelled.
+    /// </summary>
+    IReadOnlyList<(int Size, int Bpp)>? ShowAddSubImagesDialog(IReadOnlyCollection<(int Size, int Bpp)> existing);
+
     /// <summary>Shows an open-file dialog for images; returns the selected path, or null if cancelled.</summary>
     string? OpenImageFile();
 

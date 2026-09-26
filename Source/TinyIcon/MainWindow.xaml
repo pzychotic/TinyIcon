@@ -24,6 +24,7 @@
         <KeyBinding Modifiers="Control" Key="Multiply" Command="{Binding ZoomResetCommand}" />
         <!-- No parameter: deletes the selected sub-image. -->
         <KeyBinding Key="Delete" Command="{Binding DeleteSubImageCommand}" />
+        <KeyBinding Key="Insert" Command="{Binding AddSubImagesCommand}" />
     </Window.InputBindings>
 
     <Window.Resources>
@@ -81,6 +82,11 @@
                 </MenuItem>
                 <Separator />
                 <MenuItem Header="E_xit" Click="Exit_Click" />
+            </MenuItem>
+
+            <MenuItem Header="_Edit">
+                <MenuItem Header="_Add Sub-Images…" Command="{Binding AddSubImagesCommand}" InputGestureText="Ins" />
+                <MenuItem Header="_Delete Sub-Image" Command="{Binding DeleteSubImageCommand}" InputGestureText="Del" />
             </MenuItem>
 
             <MenuItem Header="_View">
@@ -158,6 +164,13 @@
                      HorizontalContentAlignment="Stretch"
                      ScrollViewer.HorizontalScrollBarVisibility="Auto"
                      ScrollViewer.VerticalScrollBarVisibility="Auto">
+                <!-- Right-clicking the empty area below the previews; items override this with their own menu. -->
+                <ListBox.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="_Add Sub-Images…" InputGestureText="Ins"
+                                  Command="{Binding AddSubImagesCommand}" />
+                    </ContextMenu>
+                </ListBox.ContextMenu>
                 <ListBox.ItemContainerStyle>
                     <Style TargetType="ListBoxItem">
                         <!-- A ContextMenu lives outside the visual tree, so it reaches the main view model
@@ -167,6 +180,9 @@
                         <Setter Property="ContextMenu">
                             <Setter.Value>
                                 <ContextMenu>
+                                    <MenuItem Header="_Add Sub-Images…" InputGestureText="Ins"
+                                              Command="{Binding PlacementTarget.Tag.AddSubImagesCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                    <Separator />
                                     <MenuItem Header="_Delete" InputGestureText="Del"
                                               Command="{Binding PlacementTarget.Tag.DeleteSubImageCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                               CommandParameter="{Binding}" />
