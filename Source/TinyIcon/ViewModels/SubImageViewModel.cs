@@ -4,7 +4,7 @@ using TinyIcon.Models;
 
 namespace TinyIcon.ViewModels;
 
-/// <summary>One sub-image inside the icon: a single resolution at a single colour depth.</summary>
+/// <summary>One sub-image inside the icon: a single resolution at a single color depth.</summary>
 public partial class SubImageViewModel(int width, int height, int bpp) : ObservableObject
 {
     public int Width { get; } = width;

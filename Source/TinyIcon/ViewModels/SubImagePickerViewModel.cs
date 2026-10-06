@@ -34,7 +34,7 @@ public partial class SubImagePickerViewModel : ObservableObject
         Func<int, IReadOnlyCollection<int>> checkedSizes, IReadOnlyCollection<int> enabledDepths) =>
         new(
             "New Icon",
-            "Choose the resolutions to include for each colour depth. A size can be selected under several depths to produce one sub-image per depth.",
+            "Choose the resolutions to include for each color depth. A size can be selected under several depths to produce one sub-image per depth.",
             IconColorDepths.All.Select(bpp =>
                 new ColorDepthColumnViewModel(bpp, checkedSizes(bpp), enabledDepths.Contains(bpp))));
 
@@ -45,7 +45,7 @@ public partial class SubImagePickerViewModel : ObservableObject
     public static SubImagePickerViewModel ForAddSubImages(IReadOnlyCollection<(int Size, int Bpp)> existing) =>
         new(
             "Add Sub-Images",
-            "Choose the resolutions to add for each colour depth. Entries already in the icon are shown checked and cannot be changed.",
+            "Choose the resolutions to add for each color depth. Entries already in the icon are shown checked and cannot be changed.",
             IconColorDepths.All.Select(bpp =>
             {
                 var existingSizes = existing.Where(e => e.Bpp == bpp).Select(e => e.Size).ToHashSet();
@@ -65,7 +65,7 @@ public partial class SubImagePickerViewModel : ObservableObject
     /// <summary>The column for <paramref name="bpp"/>.</summary>
     public ColorDepthColumnViewModel Column(int bpp) => Columns.Single(c => c.Bpp == bpp);
 
-    /// <summary>The chosen new sub-image specs from the enabled columns, ordered by colour depth then size.</summary>
+    /// <summary>The chosen new sub-image specs from the enabled columns, ordered by color depth then size.</summary>
     public IReadOnlyList<(int Size, int Bpp)> BuildSpecs() =>
         [.. Columns.SelectMany(c => c.NewSizes.Select(size => (size, c.Bpp)))];
 }

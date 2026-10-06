@@ -7,7 +7,7 @@ namespace TinyIcon.Tests.TestSupport;
 /// <summary>Small helpers for producing in-memory and on-disk bitmaps for the imaging tests.</summary>
 internal static class BitmapTestHelpers
 {
-    /// <summary>Creates a frozen solid-colour Bgra32 bitmap of the given size.</summary>
+    /// <summary>Creates a frozen solid-color Bgra32 bitmap of the given size.</summary>
     public static BitmapSource SolidColor(int width, int height, byte b, byte g, byte r, byte a)
     {
         int stride = width * 4;
@@ -27,7 +27,7 @@ internal static class BitmapTestHelpers
 
     /// <summary>
     /// Creates a frozen Bgra32 bitmap whose opaque pixels cycle through <paramref name="colorCount"/>
-    /// distinct colours, so colour-reduction tests can start from a known number of them.
+    /// distinct colors, so color-reduction tests can start from a known number of them.
     /// </summary>
     public static BitmapSource DistinctColors(int width, int height, int colorCount)
     {
@@ -35,7 +35,7 @@ internal static class BitmapTestHelpers
         var pixels = new byte[stride * height];
         for (int p = 0, i = 0; i < pixels.Length; p++, i += 4)
         {
-            // Spread the colours far apart so nearest-colour mapping has unambiguous answers.
+            // Spread the colors far apart so nearest-color mapping has unambiguous answers.
             int n = p % colorCount;
             pixels[i] = (byte)(n * 7 % 251);
             pixels[i + 1] = (byte)(n * 29 % 241);
@@ -79,7 +79,7 @@ internal static class BitmapTestHelpers
         return (pixel[0], pixel[1], pixel[2], pixel[3]);
     }
 
-    /// <summary>Writes a solid-colour PNG to a temp file and returns its path.</summary>
+    /// <summary>Writes a solid-color PNG to a temp file and returns its path.</summary>
     public static string WriteTempPng(int width, int height, byte b = 10, byte g = 20, byte r = 30, byte a = 255)
     {
         var bitmap = SolidColor(width, height, b, g, r, a);

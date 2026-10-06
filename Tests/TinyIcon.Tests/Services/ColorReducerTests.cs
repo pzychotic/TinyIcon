@@ -27,7 +27,7 @@ public class ColorReducerTests
 
     [TestCase(24)]
     [TestCase(32)]
-    public void Reduce_AtFullColourDepths_LeavesThePixelsAlone(int bpp)
+    public void Reduce_AtFullColorDepths_LeavesThePixelsAlone(int bpp)
     {
         var pixels = Pixels(8, 8, 60);
         var expected = (byte[])pixels.Clone();
@@ -45,7 +45,7 @@ public class ColorReducerTests
     [TestCase(1, 2)]
     [TestCase(4, 16)]
     [TestCase(8, 256)]
-    public void Reduce_NeverExceedsTheColourBudgetOfTheDepth(int bpp, int maxColors)
+    public void Reduce_NeverExceedsTheColorBudgetOfTheDepth(int bpp, int maxColors)
     {
         var pixels = Pixels(32, 32, 400);
 
@@ -60,7 +60,7 @@ public class ColorReducerTests
     }
 
     [Test]
-    public void Reduce_WhenTheColoursAlreadyFit_UsesThemVerbatim()
+    public void Reduce_WhenTheColorsAlreadyFit_UsesThemVerbatim()
     {
         // The path an icon opened from a palettized file takes; it is what makes open/save lossless.
         var pixels = Pixels(16, 16, 200);
@@ -83,8 +83,8 @@ public class ColorReducerTests
     {
         // IconFileWriter re-reduces the bitmap ImageScaler already previewed, so the second pass must not
         // change a pixel — otherwise the saved file would drift from what the user was shown. The palette
-        // may be reordered (the first pass quantizes, the second recognises the colours verbatim), which
-        // is why the assertion is on the pixels and on the set of colours, not on index numbering.
+        // may be reordered (the first pass quantizes, the second recognizes the colors verbatim), which
+        // is why the assertion is on the pixels and on the set of colors, not on index numbering.
         var once = ColorReducer.Reduce(Pixels(16, 16, 400), 16, 16, bpp);
         var expected = (byte[])once.Bgra.Clone();
 

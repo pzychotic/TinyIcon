@@ -54,7 +54,7 @@ public class ImageScalerTests
     [Test]
     public void ScaleTo_PadsNonSquareSourceWithTransparency()
     {
-        // A 40×20 source fitted into 32×32 becomes 32×16, centred, leaving transparent
+        // A 40×20 source fitted into 32×32 becomes 32×16, centered, leaving transparent
         // padding at the top-left corner.
         var source = BitmapTestHelpers.SolidColor(40, 20, 10, 20, 30, 255);
 
@@ -74,7 +74,7 @@ public class ImageScalerTests
 
         var pixel = new byte[4];
         result.CopyPixels(new System.Windows.Int32Rect(0, 0, 1, 1), pixel, 4, 0);
-        Assert.That(pixel, Is.All.Zero, "an alpha-127 pixel should be fully zeroed, colour included");
+        Assert.That(pixel, Is.All.Zero, "an alpha-127 pixel should be fully zeroed, color included");
     }
 
     [Test]
@@ -87,7 +87,7 @@ public class ImageScalerTests
         var pixel = new byte[4];
         result.CopyPixels(new System.Windows.Int32Rect(0, 0, 1, 1), pixel, 4, 0);
         Assert.That(pixel, Is.EqualTo(new byte[] { 10, 20, 30, 255 }),
-            "an alpha-128 pixel should keep its colour and become fully opaque");
+            "an alpha-128 pixel should keep its color and become fully opaque");
     }
 
     [Test]
@@ -107,18 +107,18 @@ public class ImageScalerTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(maskedPixel, Is.All.Zero, "24 bpp: centre pixel should be binary-transparent");
-            Assert.That(alphaPixel[3], Is.Not.Zero, "32 bpp: centre pixel should keep partial alpha");
+            Assert.That(maskedPixel, Is.All.Zero, "24 bpp: center pixel should be binary-transparent");
+            Assert.That(alphaPixel[3], Is.Not.Zero, "32 bpp: center pixel should keep partial alpha");
         });
     }
 
     [TestCase(1, 2)]
     [TestCase(4, 16)]
     [TestCase(8, 256)]
-    public void ScaleTo_BelowTrueColour_QuantizesThePreviewToTheDepthsBudget(int bpp, int maxColors)
+    public void ScaleTo_BelowTrueColor_QuantizesThePreviewToTheDepthsBudget(int bpp, int maxColors)
     {
-        // The preview is what the user judges the import by, so it has to show the colour loss the depth
-        // forces rather than a full-colour image that changes the moment it is saved.
+        // The preview is what the user judges the import by, so it has to show the color loss the depth
+        // forces rather than a full-color image that changes the moment it is saved.
         var source = BitmapTestHelpers.DistinctColors(64, 64, 500);
 
         var scaled = ImageScaler.ScaleTo(source, 64, bpp);

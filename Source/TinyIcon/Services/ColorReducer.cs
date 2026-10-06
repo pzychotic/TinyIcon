@@ -4,7 +4,7 @@ using System.Windows.Media.Imaging;
 namespace TinyIcon.Services;
 
 /// <summary>
-/// The result of reducing a BGRA buffer to the colours a given icon depth can represent.
+/// The result of reducing a BGRA buffer to the colors a given icon depth can represent.
 /// <see cref="Palette"/> holds four bytes (B, G, R, 0) per entry and <see cref="Indices"/> one byte per
 /// pixel; both are empty/null above 8 bpp. <see cref="Bgra"/> is what the reduced image actually looks
 /// like, so a preview built from it matches the saved entry pixel for pixel.
@@ -12,7 +12,7 @@ namespace TinyIcon.Services;
 public readonly record struct ReducedImage(byte[] Bgra, byte[] Palette, byte[]? Indices);
 
 /// <summary>
-/// Reduces straight (non-premultiplied) BGRA pixels to the colours representable at a given icon depth.
+/// Reduces straight (non-premultiplied) BGRA pixels to the colors representable at a given icon depth.
 /// Both <see cref="ImageScaler"/> (for previews) and <see cref="IconFileWriter"/> (for the saved bytes)
 /// go through here, so what the user sees is what lands in the file.
 /// </summary>
@@ -23,7 +23,7 @@ public static class ColorReducer
 
     /// <summary>
     /// Reduces <paramref name="bgra"/> in place for <paramref name="bpp"/> and returns the palette and
-    /// indices needed to write it. 24 and 32 bpp pass through untouched — they can carry every colour.
+    /// indices needed to write it. 24 and 32 bpp pass through untouched — they can carry every color.
     /// </summary>
     /// <remarks>
     /// Idempotent: reducing a buffer this method produced yields the same pixels and the same palette.
@@ -67,7 +67,7 @@ public static class ColorReducer
         int maxColors = 1 << bpp;
 
         // Transparency lives solely in the 1-bit AND mask, and masked pixels must be black because legacy
-        // renderers XOR the colour data over the destination. Reserving index 0 for black covers both.
+        // renderers XOR the color data over the destination. Reserving index 0 for black covers both.
         bool reserveBlack = false;
         for (int i = 3; i < bgra.Length; i += 4)
         {
@@ -104,7 +104,7 @@ public static class ColorReducer
 
             indices[p] = index;
 
-            // Write the chosen colour back so Bgra is exactly what the entry will contain.
+            // Write the chosen color back so Bgra is exactly what the entry will contain.
             uint chosen = palette[index];
             bgra[i] = (byte)chosen;
             bgra[i + 1] = (byte)(chosen >> 8);
@@ -125,13 +125,13 @@ public static class ColorReducer
     }
 
     /// <summary>
-    /// Picks at most <paramref name="maxColors"/> colours for the opaque pixels of <paramref name="bgra"/>.
-    /// When they all fit, the distinct colours are used verbatim — that is the path an icon opened from a
+    /// Picks at most <paramref name="maxColors"/> colors for the opaque pixels of <paramref name="bgra"/>.
+    /// When they all fit, the distinct colors are used verbatim — that is the path an icon opened from a
     /// palettized file takes, and it is what makes open/save lossless.
     /// </summary>
     private static List<uint> BuildPalette(byte[] bgra, int width, int height, int maxColors, bool reserveBlack)
     {
-        // Colours are collected in order of first appearance, so the same pixels always yield the same
+        // Colors are collected in order of first appearance, so the same pixels always yield the same
         // palette and the file a given icon saves to is reproducible.
         var palette = new List<uint>(maxColors);
         var seen = new HashSet<uint>();
@@ -165,7 +165,7 @@ public static class ColorReducer
             if (reserveBlack)
                 palette.Add(Black);
 
-            // Median cut, courtesy of WPF. Ask for one fewer colour when black is already spoken for; the
+            // Median cut, courtesy of WPF. Ask for one fewer color when black is already spoken for; the
             // constructor rejects counts below two, so clamp and drop any surplus while copying.
             var source = BitmapSource.Create(width, height, 96, 96, PixelFormats.Bgra32, null, bgra, width * 4);
             var generated = new BitmapPalette(source, Math.Clamp(reserveBlack ? maxColors - 1 : maxColors, 2, 256));
@@ -181,7 +181,7 @@ public static class ColorReducer
             }
         }
 
-        // A colour table needs at least one entry, and a two-entry one keeps 1 bpp entries unremarkable.
+        // A color table needs at least one entry, and a two-entry one keeps 1 bpp entries unremarkable.
         while (palette.Count < Math.Min(2, maxColors))
             palette.Add(Black);
 

@@ -64,10 +64,10 @@ public class IconFileReaderTests
     [TestCase(1, 2)]
     [TestCase(4, 16)]
     [TestCase(8, 256)]
-    public void Read_RoundTripsAPalettizedEntryWithoutLosingAColour(int bpp, int maxColors)
+    public void Read_RoundTripsAPalettizedEntryWithoutLosingAColor(int bpp, int maxColors)
     {
-        // An image already within the depth's colour budget must survive write-then-read untouched: this
-        // is what makes opening a legacy icon and saving it again lossless. One colour is reserved for
+        // An image already within the depth's color budget must survive write-then-read untouched: this
+        // is what makes opening a legacy icon and saving it again lossless. One color is reserved for
         // black (index 0), so fill the budget minus that.
         var source = BitmapTestHelpers.DistinctColors(16, 16, maxColors - 1);
         var expected = GetPixels(source);
@@ -84,7 +84,7 @@ public class IconFileReaderTests
     [Test]
     public void Read_RoundTripsA16BppEntryBitForBit()
     {
-        // Colours already snapped to 5-5-5 come back exactly, because Expand5 inverts the writer's shift.
+        // Colors already snapped to 5-5-5 come back exactly, because Expand5 inverts the writer's shift.
         var source = BitmapTestHelpers.SolidColor(16, 16, b: 0x08, g: 0x52, r: 0xFF, a: 255);
         var images = RoundTrip(new IconImage(source, 16, IconImageFormat.Bmp));
 
@@ -156,9 +156,9 @@ public class IconFileReaderTests
     // --- Entries the app itself never writes ---
 
     [Test]
-    public void Read_DecodesAPalettizedEntryAndKeepsItsColourDepth()
+    public void Read_DecodesAPalettizedEntryAndKeepsItsColorDepth()
     {
-        // 4×2, 8 bpp, two-colour table: index 0 = blue, index 1 = red.
+        // 4×2, 8 bpp, two-color table: index 0 = blue, index 1 = red.
         byte[] palette = [255, 0, 0, 0, /**/ 0, 0, 255, 0];
         byte[] rows =
         [
@@ -181,7 +181,7 @@ public class IconFileReaderTests
     public void Read_ThenWrite_PreservesAForeignPalettizedEntry()
     {
         // End to end on bytes this project did not author: a hand-built 8 bpp entry must come back out at
-        // 8 bpp, with its colours intact and in a file the platform codec still accepts.
+        // 8 bpp, with its colors intact and in a file the platform codec still accepts.
         byte[] palette = [255, 0, 0, 0, /**/ 0, 0, 255, 0]; // index 0 = blue, index 1 = red
         byte[] rows = new byte[8 * 4];
         for (int y = 0; y < 4; y++)
@@ -206,7 +206,7 @@ public class IconFileReaderTests
             Assert.Multiple(() =>
             {
                 Assert.That(reopened[0].Bpp, Is.EqualTo(8), "depth survives");
-                Assert.That(GetPixels(reopened[0].Bitmap), Is.EqualTo(expected), "colours survive");
+                Assert.That(GetPixels(reopened[0].Bitmap), Is.EqualTo(expected), "colors survive");
                 Assert.That(decoder.Frames, Has.Count.EqualTo(1), "platform codec accepts it");
             });
         }
@@ -250,7 +250,7 @@ public class IconFileReaderTests
         {
             Assert.That(pixels[3], Is.EqualTo(0), "masked pixel stays transparent");
             Assert.That(pixels[7], Is.EqualTo(255), "unmasked pixel becomes opaque");
-            Assert.That(pixels[6], Is.EqualTo(200), "colour survives");
+            Assert.That(pixels[6], Is.EqualTo(200), "color survives");
         });
     }
 
@@ -304,7 +304,7 @@ public class IconFileReaderTests
 
     // --- Hand-built icon bytes ---
 
-    /// <summary>Builds a DIB entry blob: BITMAPINFOHEADER + colour table + XOR data + AND mask.</summary>
+    /// <summary>Builds a DIB entry blob: BITMAPINFOHEADER + color table + XOR data + AND mask.</summary>
     private static byte[] BuildDib(int width, int height, int bpp, byte[] palette, byte[] rows, byte[] mask)
     {
         var dib = new byte[40 + palette.Length + rows.Length + mask.Length];

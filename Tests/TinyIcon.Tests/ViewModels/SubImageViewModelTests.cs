@@ -22,7 +22,7 @@ public class SubImageViewModelTests
 
     [TestCase(32, 32, "32×32 · 32-bit BMP")]
     [TestCase(256, 32, "256×256 · 32-bit PNG")]
-    public void Label_CombinesSizeColourDepthAndFormat(int size, int bpp, string expected)
+    public void Label_CombinesSizeColorDepthAndFormat(int size, int bpp, string expected)
     {
         var subImage = new SubImageViewModel(size, size, bpp);
 

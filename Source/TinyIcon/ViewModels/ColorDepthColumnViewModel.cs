@@ -3,7 +3,7 @@ using TinyIcon.Models;
 
 namespace TinyIcon.ViewModels;
 
-/// <summary>One colour-depth column of the sub-image picker: a checkable size per typical resolution.</summary>
+/// <summary>One color-depth column of the sub-image picker: a checkable size per typical resolution.</summary>
 public partial class ColorDepthColumnViewModel : ObservableObject
 {
     public ColorDepthColumnViewModel(

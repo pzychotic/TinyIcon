@@ -8,8 +8,8 @@ namespace TinyIcon.Services;
 /// <summary>
 /// Reads the sub-images of a Windows <c>.ico</c> file — the exact inverse of <see cref="IconFileWriter"/>.
 /// Each directory entry is either a complete PNG stream (Vista+) or a classic DIB blob
-/// (BITMAPINFOHEADER + XOR colour data + 1-bit AND transparency mask); both are decoded into a
-/// straight (non-premultiplied) BGRA bitmap, keeping the entry's real size and colour depth.
+/// (BITMAPINFOHEADER + XOR color data + 1-bit AND transparency mask); both are decoded into a
+/// straight (non-premultiplied) BGRA bitmap, keeping the entry's real size and color depth.
 /// </summary>
 public static class IconFileReader
 {
@@ -112,7 +112,7 @@ public static class IconFileReader
         if (bpp == 0)
             bpp = entryBpp;
         if (bpp is not (1 or 4 or 8 or 16 or 24 or 32))
-            throw new InvalidDataException($"Unsupported colour depth: {bpp} bpp.");
+            throw new InvalidDataException($"Unsupported color depth: {bpp} bpp.");
 
         int colorStride = ((width * bpp) + 31) / 32 * 4;
         int maskStride = AndMaskStride(width);
@@ -191,7 +191,7 @@ public static class IconFileReader
                 }
                 break;
 
-            default: // 1, 4 or 8 bpp: indices into the BGRA colour table that follows the header.
+            default: // 1, 4 or 8 bpp: indices into the BGRA color table that follows the header.
                 for (int x = 0; x < width; x++, dst += 4)
                 {
                     int index = ReadIndex(bytes, src, x, bpp);

@@ -55,7 +55,7 @@ public static class ImageScaler
     /// <summary>
     /// Scales like <see cref="ScaleTo(BitmapSource, int)"/> and, for every target below 32 bpp, additionally
     /// applies <see cref="ApplyBinaryTransparency"/> — those entries carry transparency in the 1-bit AND mask
-    /// — and, at 16 bpp and below, the colour reduction that depth forces. The result therefore previews
+    /// — and, at 16 bpp and below, the color reduction that depth forces. The result therefore previews
     /// exactly as it will be saved.
     /// </summary>
     public static BitmapSource ScaleTo(BitmapSource source, int size, int bpp) =>
@@ -71,7 +71,7 @@ public static class ImageScaler
         var pixels = CopyBgra(scaled);
         ApplyBinaryTransparency(pixels);
 
-        // 24 bpp holds every colour; 16 bpp and the palettized depths do not, and the user should see that.
+        // 24 bpp holds every color; 16 bpp and the palettized depths do not, and the user should see that.
         if (bpp < 24)
             ColorReducer.Reduce(pixels, width, height, bpp);
 

@@ -7,9 +7,9 @@ namespace TinyIcon.Services;
 
 /// <summary>
 /// Writes sub-images to a multi-resolution Windows <c>.ico</c> file. Each entry is encoded per its
-/// <see cref="IconImage.Format"/>: either a classic DIB/BMP blob (BITMAPINFOHEADER + optional colour table +
-/// XOR colour data + 1-bit AND transparency mask), honouring its bpp — indexed depths always ship a full
-/// 2^bpp colour table, because many readers locate the pixel data at that fixed offset rather than from
+/// <see cref="IconImage.Format"/>: either a classic DIB/BMP blob (BITMAPINFOHEADER + optional color table +
+/// XOR color data + 1-bit AND transparency mask), honoring its bpp — indexed depths always ship a full
+/// 2^bpp color table, because many readers locate the pixel data at that fixed offset rather than from
 /// biClrUsed — 32-bit keeps the alpha channel, every
 /// lesser depth relies on the AND mask for transparency — or a complete PNG stream (Vista+, typically the
 /// 256×256 32-bit entry). 1, 4, 8, 16, 24 and 32 bpp DIBs are produced, matching what
@@ -47,10 +47,10 @@ public static class IconFileWriter
         {
             writer.Write((byte)(e.Width >= 256 ? 0 : e.Width));
             writer.Write((byte)(e.Height >= 256 ? 0 : e.Height));
-            // Colour count; the field is a byte, so a full 256-entry table is recorded as 0, as is "no table".
+            // Color count; the field is a byte, so a full 256-entry table is recorded as 0, as is "no table".
             writer.Write((byte)(e.PaletteCount < 256 ? e.PaletteCount : 0));
             writer.Write((byte)0);           // reserved
-            writer.Write((ushort)1);         // colour planes
+            writer.Write((ushort)1);         // color planes
             writer.Write((ushort)e.Bpp);     // bits per pixel
             writer.Write(e.Data.Length);     // bytes in resource
             writer.Write(offset);            // image offset
@@ -97,7 +97,7 @@ public static class IconFileWriter
             _ => BuildDibIndexed(reduced, width, height, storedBpp),
         };
 
-        // Indexed entries always ship a full 2^bpp colour table; see BuildDibIndexed.
+        // Indexed entries always ship a full 2^bpp color table; see BuildDibIndexed.
         int paletteCount = storedBpp <= 8 ? 1 << storedBpp : 0;
         return new Entry(width, height, storedBpp, paletteCount, data);
     }
@@ -121,7 +121,7 @@ public static class IconFileWriter
         using var w = new BinaryWriter(ms);
         WriteHeader(w, width, height, 32, 0);
 
-        // XOR mask: BGRA colour data, rows bottom-up.
+        // XOR mask: BGRA color data, rows bottom-up.
         for (int y = height - 1; y >= 0; y--)
             w.Write(bgra, y * colorStride, colorStride);
 
@@ -138,7 +138,7 @@ public static class IconFileWriter
         using var w = new BinaryWriter(ms);
         WriteHeader(w, width, height, 24, 0);
 
-        // XOR mask: BGR colour data, rows bottom-up and padded.
+        // XOR mask: BGR color data, rows bottom-up and padded.
         var row = new byte[colorStride];
         for (int y = height - 1; y >= 0; y--)
         {
@@ -146,8 +146,8 @@ public static class IconFileWriter
             int dst = 0;
             for (int x = 0; x < width; x++, src += 4)
             {
-                // Masked-out pixels must be black: legacy renderers XOR the colour data over the
-                // destination, so stray colour under a transparent mask bit shows as artifacts.
+                // Masked-out pixels must be black: legacy renderers XOR the color data over the
+                // destination, so stray color under a transparent mask bit shows as artifacts.
                 bool opaque = bgra[src + 3] >= OpaqueAlphaThreshold;
                 row[dst++] = opaque ? bgra[src] : (byte)0;     // B
                 row[dst++] = opaque ? bgra[src + 1] : (byte)0; // G
@@ -195,12 +195,12 @@ public static class IconFileWriter
         return ms.ToArray();
     }
 
-    // 1, 4 and 8 bpp: a BGRA colour table follows the header, then packed indices into it.
+    // 1, 4 and 8 bpp: a BGRA color table follows the header, then packed indices into it.
     private static byte[] BuildDibIndexed(ReducedImage reduced, int width, int height, int bpp)
     {
         byte[] indices = reduced.Indices!;
 
-        // The colour table is padded out to the full 2^bpp entries even when the reduction needed fewer.
+        // The color table is padded out to the full 2^bpp entries even when the reduction needed fewer.
         // biClrUsed says how many are meaningful, but plenty of readers (XnView, WinMerge, …) ignore it and
         // locate the pixel data at a fixed 40 + (1 << bpp) * 4 bytes, so a short table shifts the whole image.
         int paletteEntries = 1 << bpp;

@@ -1,6 +1,6 @@
 namespace TinyIcon.Models;
 
-/// <summary>Catalog of the colour depths (bits per pixel) the app can read and write.</summary>
+/// <summary>Catalog of the color depths (bits per pixel) the app can read and write.</summary>
 public static class IconColorDepths
 {
     /// <summary>Every supported depth, from monochrome to 32-bit with alpha.</summary>

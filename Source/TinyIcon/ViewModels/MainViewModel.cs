@@ -167,7 +167,7 @@ public partial class MainViewModel : ObservableObject
     /// <summary>
     /// Adds the sub-images chosen in the Add Sub-Images dialog. Each new slot is scaled from the best existing
     /// bitmap (see <see cref="BestSourceBitmap"/>), or left empty when there is none yet, and inserted in
-    /// colour-depth-then-size order. The first new slot is selected.
+    /// color-depth-then-size order. The first new slot is selected.
     /// </summary>
     [RelayCommand(CanExecute = nameof(HasSlots))]
     private void AddSubImages()
@@ -203,7 +203,7 @@ public partial class MainViewModel : ObservableObject
         SaveIconCommand.NotifyCanExecuteChanged();
     }
 
-    /// <summary>The largest existing bitmap, preferring the higher colour depth when sizes tie.</summary>
+    /// <summary>The largest existing bitmap, preferring the higher color depth when sizes tie.</summary>
     private BitmapSource? BestSourceBitmap() =>
         SubImages
             .Where(s => s.Bitmap is not null)
@@ -211,7 +211,7 @@ public partial class MainViewModel : ObservableObject
             .ThenByDescending(s => s.Bpp)
             .FirstOrDefault()?.Bitmap;
 
-    /// <summary>Before the first slot that sorts after <paramref name="slot"/> by colour depth, then size.</summary>
+    /// <summary>Before the first slot that sorts after <paramref name="slot"/> by color depth, then size.</summary>
     private int InsertionIndex(SubImageViewModel slot)
     {
         for (int i = 0; i < SubImages.Count; i++)

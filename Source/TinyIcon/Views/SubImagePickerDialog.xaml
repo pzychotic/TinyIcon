@@ -17,7 +17,7 @@
 
         <TextBlock Grid.Row="0" Margin="0,0,0,10" TextWrapping="Wrap" Text="{Binding Description}" />
 
-        <!-- One column per colour depth; the header checkbox turns the whole depth on or off. -->
+        <!-- One column per color depth; the header checkbox turns the whole depth on or off. -->
         <ItemsControl Grid.Row="1" ItemsSource="{Binding Columns}">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>

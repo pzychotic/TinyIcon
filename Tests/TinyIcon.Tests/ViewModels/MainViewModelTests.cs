@@ -57,13 +57,13 @@ public class MainViewModelTests
     }
 
     [Test]
-    public void NewIcon_WhenCancelled_LeavesSlotsUntouched()
+    public void NewIcon_WhenCanceled_LeavesSlotsUntouched()
     {
         var dialogs = new FakeDialogService { NewIconResult = [(16, 32)] };
         var vm = Create(dialogs);
         vm.NewIconCommand.Execute(null);
 
-        dialogs.NewIconResult = null; // cancelled
+        dialogs.NewIconResult = null; // canceled
         vm.NewIconCommand.Execute(null);
 
         Assert.That(vm.SubImages, Has.Count.EqualTo(1));
@@ -114,7 +114,7 @@ public class MainViewModelTests
     }
 
     [Test]
-    public void ImportImage_WhenCancelled_DoesNothing()
+    public void ImportImage_WhenCanceled_DoesNothing()
     {
         var dialogs = new FakeDialogService
         {
@@ -267,7 +267,7 @@ public class MainViewModelTests
     }
 
     [Test]
-    public void SaveIcon_WhenCancelled_WritesNothing()
+    public void SaveIcon_WhenCanceled_WritesNothing()
     {
         var dialogs = new FakeDialogService
         {
@@ -365,7 +365,7 @@ public class MainViewModelTests
     }
 
     [Test]
-    public void OpenIcon_WhenCancelled_LeavesSlotsUntouched()
+    public void OpenIcon_WhenCanceled_LeavesSlotsUntouched()
     {
         var dialogs = new FakeDialogService { NewIconResult = [(16, 32)], OpenIconResult = null };
         var vm = Create(dialogs);
@@ -625,7 +625,7 @@ public class MainViewModelTests
     }
 
     [Test]
-    public void AddSubImages_WhenCancelled_LeavesSlotsUntouched()
+    public void AddSubImages_WhenCanceled_LeavesSlotsUntouched()
     {
         var (vm, dialogs) = CreateWithImages((16, 32));
         dialogs.AddSubImagesResult = null;
@@ -707,7 +707,7 @@ public class MainViewModelTests
     }
 
     [Test]
-    public void AddSubImages_AppliesTheNewSlotsColourDepth()
+    public void AddSubImages_AppliesTheNewSlotsColorDepth()
     {
         // A half-transparent 32-bit source must come out with binary transparency at 8 bpp.
         var (vm, dialogs) = CreateWithImages((32, 32));

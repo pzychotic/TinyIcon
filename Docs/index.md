@@ -22,10 +22,10 @@ Define your wanted resolutions, import image, save. Done!
 - Delete sub-images (Edit menu, right-click a preview, or Del)
 - Import a source image (`.png`, `.bmp`, `.jpg`, `.gif`, `.tiff`) that gets downscaled into every sub-image
 - Drop a file on the window: an `.ico` is opened, any other image is imported
-- Non-square sources are fitted and centred with transparent padding, so the aspect ratio is kept
+- Non-square sources are fitted and centered with transparent padding, so the aspect ratio is kept
 - Full alpha transparency for 32-bit entries; all lower depths use a 1-bit mask
 - Automatic encoding per sub-image: PNG for 256×256 32-bit entries, classic DIB/BMP for the rest
-- Detail view with zoom (Ctrl +/-/\*, or mouse wheel), pan (right mouse drag, right click recentres)
+- Detail view with zoom (Ctrl +/-/\*, or mouse wheel), pan (right mouse drag, right click recenters)
 - Keyboard shortcuts for the whole workflow (see [Keyboard Shortcuts](#keyboard-shortcuts))
 - Remembers your window placement and the last resolution selection per color depth between runs
 

@@ -3,7 +3,7 @@ namespace TinyIcon.Models;
 /// <summary>How a sub-image is encoded inside the .ico file.</summary>
 public enum IconImageFormat
 {
-    /// <summary>Classic DIB entry: BITMAPINFOHEADER + XOR colour data + 1-bit AND mask.</summary>
+    /// <summary>Classic DIB entry: BITMAPINFOHEADER + XOR color data + 1-bit AND mask.</summary>
     Bmp,
 
     /// <summary>Complete PNG stream (Vista+), conventionally used for the 256×256 32-bit entry.</summary>

@@ -90,11 +90,11 @@ public class IconFileWriterTests
     }
 
     [Test]
-    public void Write_Zeroes24BppColourDataUnderTheTransparencyMask()
+    public void Write_Zeroes24BppColorDataUnderTheTransparencyMask()
     {
         string path = TempIcoPath();
         // Alpha 100 is below the mask threshold, so every pixel is masked out and its
-        // colour must not leak into the XOR data (legacy renderers XOR it over the screen).
+        // color must not leak into the XOR data (legacy renderers XOR it over the screen).
         var bitmap = BitmapTestHelpers.SolidColor(16, 16, 10, 20, 30, 100);
         try
         {
@@ -168,7 +168,7 @@ public class IconFileWriterTests
     }
 
     [Test]
-    public void Write_HonoursTheFormatIndependentlyOfSize()
+    public void Write_HonorsTheFormatIndependentlyOfSize()
     {
         string path = TempIcoPath();
         try
@@ -243,7 +243,7 @@ public class IconFileWriterTests
     }
 
     [Test]
-    public void Write_StoresAnUnrecognisedDepthAsA24BitEntry()
+    public void Write_StoresAnUnrecognizedDepthAsA24BitEntry()
     {
         // 2 bpp is a legal DIB depth but not one IconFileReader decodes, so writing it would produce a
         // file we could not open again.
@@ -260,7 +260,7 @@ public class IconFileWriterTests
     }
 
     [Test]
-    public void Write_RecordsTheColourTableOfAPalettizedEntry()
+    public void Write_RecordsTheColorTableOfAPalettizedEntry()
     {
         string path = TempIcoPath();
         var slot = new IconImage(BitmapTestHelpers.DistinctColors(8, 8, 5), 8, IconImageFormat.Bmp);
@@ -274,11 +274,11 @@ public class IconFileWriterTests
 
             Assert.Multiple(() =>
             {
-                // Only 5 colours are used, but the table is padded to the full 256 entries an 8 bpp DIB
+                // Only 5 colors are used, but the table is padded to the full 256 entries an 8 bpp DIB
                 // implies: readers that ignore biClrUsed expect the pixel data at a fixed offset.
                 Assert.That(clrUsed, Is.EqualTo(256), "biClrUsed");
                 Assert.That(ReadEntryColorCounts(path), Is.EqualTo([0]), "bColorCount (256 records as 0)");
-                // 40-byte header + colour table + 8 rows of indices + 8 rows of AND mask, each 4-byte aligned.
+                // 40-byte header + color table + 8 rows of indices + 8 rows of AND mask, each 4-byte aligned.
                 Assert.That(ReadEntrySizes(path), Is.EqualTo([40 + 256 * 4 + 8 * 8 + 8 * 4]), "bytes in resource");
             });
         }
@@ -300,7 +300,7 @@ public class IconFileWriterTests
             IconFileWriter.Write(path, [slot]);
 
             using var reader = new BinaryReader(File.OpenRead(path));
-            const int PaletteBytes = 256 * 4; // 8 bpp always ships a full colour table
+            const int PaletteBytes = 256 * 4; // 8 bpp always ships a full color table
             var blob = ReadBlobStart(reader, entryIndex: 0, count: 40 + PaletteBytes + 8);
             var firstEntry = blob[40..44];
             var lastRow = blob[(40 + PaletteBytes)..]; // rows are bottom-up, so this is the image's last row
