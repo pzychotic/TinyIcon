@@ -67,6 +67,7 @@ public class JsonSettingsServiceTests
         {
             DepthSizes = new() { [4] = [16, 32], [32] = [256] },
             EnabledDepths = [4, 32],
+            ShowLegacyDepths = true,
         };
 
         service.Save(settings);
@@ -77,6 +78,7 @@ public class JsonSettingsServiceTests
         {
             Assert.That(loaded!.DepthSizes, Is.EquivalentTo(settings.DepthSizes));
             Assert.That(loaded.EnabledDepths, Is.EqualTo([4, 32]));
+            Assert.That(loaded.ShowLegacyDepths, Is.True);
         });
     }
 

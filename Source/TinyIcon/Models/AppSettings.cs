@@ -18,6 +18,9 @@ public sealed class AppSettings
     /// <summary>Color depths (bpp) last enabled in the New Icon dialog (default: 32-bit only).</summary>
     public int[]? EnabledDepths { get; set; }
 
+    /// <summary>Whether the legacy color depths were last shown in the New Icon dialog (default: hidden).</summary>
+    public bool? ShowLegacyDepths { get; set; }
+
     // Legacy New Icon selection from before the dialog offered every depth. Only read as a fallback for
     // DepthSizes/EnabledDepths, and cleared the next time the dialog is confirmed.
 

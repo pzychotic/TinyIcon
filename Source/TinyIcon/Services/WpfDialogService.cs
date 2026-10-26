@@ -11,13 +11,16 @@ public sealed class WpfDialogService(Window owner, AppSettings settings) : IDial
 {
     public IReadOnlyList<(int Size, int Bpp)>? ShowNewIconDialog()
     {
-        var viewModel = SubImagePickerViewModel.ForNewIcon(RememberedSizes, RememberedEnabledDepths());
+        var viewModel = SubImagePickerViewModel.ForNewIcon(
+            RememberedSizes, RememberedEnabledDepths(), settings.ShowLegacyDepths ?? false);
         if (!ShowPicker(viewModel))
             return null;
 
-        // Remember the confirmed selection as the default for the next New Icon dialog.
+        // Remember the confirmed selection as the default for the next New Icon dialog. Hidden legacy depths
+        // are not remembered as enabled, so they don't force the legacy columns open next time.
         settings.DepthSizes = viewModel.Columns.ToDictionary(c => c.Bpp, c => c.CheckedSizes);
-        settings.EnabledDepths = [.. viewModel.Columns.Where(c => c.IsEnabled).Select(c => c.Bpp)];
+        settings.EnabledDepths = [.. viewModel.Columns.Where(c => c.IsVisible && c.IsEnabled).Select(c => c.Bpp)];
+        settings.ShowLegacyDepths = viewModel.ShowLegacy;
         settings.Bpp24Sizes = settings.Bpp32Sizes = null;
         settings.Bpp24Enabled = settings.Bpp32Enabled = null;
         return viewModel.BuildSpecs();
@@ -25,7 +28,8 @@ public sealed class WpfDialogService(Window owner, AppSettings settings) : IDial
 
     public IReadOnlyList<(int Size, int Bpp)>? ShowAddSubImagesDialog(IReadOnlyCollection<(int Size, int Bpp)> existing)
     {
-        var viewModel = SubImagePickerViewModel.ForAddSubImages(existing);
+        // Honors the remembered legacy preference but never changes it; only New Icon does.
+        var viewModel = SubImagePickerViewModel.ForAddSubImages(existing, settings.ShowLegacyDepths ?? false);
         return ShowPicker(viewModel) ? viewModel.BuildSpecs() : null;
     }
 

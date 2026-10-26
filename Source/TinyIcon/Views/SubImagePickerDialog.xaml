@@ -6,58 +6,71 @@
         xmlns:vm="clr-namespace:TinyIcon.ViewModels"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance Type=vm:SubImagePickerViewModel, IsDesignTimeCreatable=False}"
-        Title="{Binding Title}" Width="640"
-        WindowStartupLocation="CenterOwner" ResizeMode="NoResize" ShowInTaskbar="False" SizeToContent="Height">
+        Title="{Binding Title}"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize" ShowInTaskbar="False"
+        SizeToContent="WidthAndHeight" SizeChanged="Window_SizeChanged">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+    </Window.Resources>
     <Grid Margin="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Margin="0,0,0,10" TextWrapping="Wrap" Text="{Binding Description}" />
+        <!-- Wraps to the width of the columns and buttons instead of widening the window. -->
+        <TextBlock Grid.Row="0" Margin="0,0,0,10" TextWrapping="Wrap" Text="{Binding Description}"
+                   Width="{Binding ActualWidth, ElementName=PickerBody}" HorizontalAlignment="Left" />
 
-        <!-- One column per color depth; the header checkbox turns the whole depth on or off. -->
-        <ItemsControl Grid.Row="1" ItemsSource="{Binding Columns}">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <UniformGrid Rows="1" />
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <GroupBox Margin="3,0">
-                        <GroupBox.Header>
-                            <CheckBox Content="{Binding Header}" IsChecked="{Binding IsEnabled}" />
-                        </GroupBox.Header>
-                        <ItemsControl ItemsSource="{Binding Options}" Margin="6" IsEnabled="{Binding IsEnabled}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <!-- Entries already in the icon stay checked and locked. -->
-                                    <CheckBox Margin="0,4" Content="{Binding Label}" IsChecked="{Binding IsSelected}"
-                                              ToolTip="{Binding ToolTip}" ToolTipService.ShowOnDisabled="True">
-                                        <CheckBox.Style>
-                                            <Style TargetType="CheckBox">
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding IsExisting}" Value="True">
-                                                        <Setter Property="IsEnabled" Value="False" />
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </CheckBox.Style>
-                                    </CheckBox>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </GroupBox>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
+        <!-- Left-aligned so its width follows the visible columns rather than the window, letting the window
+             shrink again when the legacy columns are hidden. -->
+        <StackPanel x:Name="PickerBody" Grid.Row="1" HorizontalAlignment="Left">
+            <!-- One column per color depth; the header checkbox turns the whole depth on or off. -->
+            <ItemsControl ItemsSource="{Binding Columns}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <GroupBox Width="100" Margin="3,0"
+                                  Visibility="{Binding IsVisible, Converter={StaticResource BoolToVisibility}}">
+                            <GroupBox.Header>
+                                <CheckBox Content="{Binding Header}" IsChecked="{Binding IsEnabled}" />
+                            </GroupBox.Header>
+                            <ItemsControl ItemsSource="{Binding Options}" Margin="6" IsEnabled="{Binding IsEnabled}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <!-- Entries already in the icon stay checked and locked. -->
+                                        <CheckBox Margin="0,4" Content="{Binding Label}" IsChecked="{Binding IsSelected}"
+                                                  ToolTip="{Binding ToolTip}" ToolTipService.ShowOnDisabled="True">
+                                            <CheckBox.Style>
+                                                <Style TargetType="CheckBox">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsExisting}" Value="True">
+                                                            <Setter Property="IsEnabled" Value="False" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </CheckBox.Style>
+                                        </CheckBox>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </GroupBox>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
 
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
-            <Button Content="OK" IsDefault="True" Width="84" Margin="0,0,8,0"
-                    IsEnabled="{Binding HasSelection}" Click="Ok_Click" />
-            <Button Content="Cancel" IsCancel="True" Width="84" />
+            <DockPanel Margin="0,12,0,0" LastChildFill="False">
+                <!-- Legacy columns open to the left, so the arrow points the way they appear or disappear. -->
+                <Button DockPanel.Dock="Left" Content="{Binding LegacyToggleText}" Width="20"
+                        ToolTip="{Binding LegacyToggleToolTip}" Command="{Binding ToggleLegacyCommand}" />
+                <Button DockPanel.Dock="Right" Content="Cancel" IsCancel="True" Width="84" />
+                <Button DockPanel.Dock="Right" Content="OK" IsDefault="True" Width="84" Margin="12,0,8,0"
+                        IsEnabled="{Binding HasSelection}" Click="Ok_Click" />
+            </DockPanel>
         </StackPanel>
     </Grid>
 </Window>

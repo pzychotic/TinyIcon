@@ -25,6 +25,13 @@ public partial class ColorDepthColumnViewModel : ObservableObject
 
     public string Header => $"{Bpp}-bit";
 
+    /// <summary>Whether this is a legacy depth, shown only while the picker's legacy depths are expanded.</summary>
+    public bool IsLegacy => IconColorDepths.IsLegacy(Bpp);
+
+    /// <summary>Whether the column is shown. Hidden columns contribute nothing to the picker's result.</summary>
+    [ObservableProperty]
+    public partial bool IsVisible { get; set; } = true;
+
     public IReadOnlyList<ResolutionOptionViewModel> Options { get; }
 
     /// <summary>Whether this column contributes to the result. Checked sizes are kept while disabled.</summary>
